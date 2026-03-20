@@ -175,6 +175,9 @@ pub fn run() {
         .unwrap()
         .as_secs();
 
+    // Ensure crypto/usage caches are fresh (spawns background refresh if stale)
+    crate::cache::ensure_caches_fresh(&config);
+
     let mut parts: Vec<String> = Vec::new();
 
     for key in &config.order {
