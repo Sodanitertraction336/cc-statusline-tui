@@ -1,72 +1,127 @@
 # claude-statusline-config
 
-交互式 CLI 工具，配置 Claude Code 状态栏。
+Interactive CLI tool to configure the Claude Code statusline.
 
-## 项目信息
+## Project Info
 
-- 包名: `claude-statusline-config`
+- Package: `claude-statusline-config`
 - GitHub: `https://github.com/LokiQ0713/claude-statusline-config`
-- Registry: npm 公共 registry
-- 用户安装: `npx claude-statusline-config`
+- Registry: npm public registry (ships prebuilt Rust binaries via npm postinstall)
+- Install: `npx claude-statusline-config`
 
-## 技术栈
+## Tech Stack
 
-- 语言: JavaScript（ESM, `"type": "module"`）
-- 入口: `cli.js`
-- 依赖: `@clack/prompts`（交互式菜单）, `chalk`（终端着色）
-- 系统依赖: `jq`, `perl`, `curl`（生成的 statusline.sh 脚本使用）
+- Language: Rust (2021 edition)
+- Entry: `src/main.rs`
+- Dependencies: `serde` / `serde_json` (config serialization), `crossterm` (terminal UI), `ureq` (HTTP), `dirs` (home directory), `tempfile` (tests)
+- System deps: none (was jq/perl/curl in the JS version)
 
-## 文件结构
+## File Structure
 
-- `cli.js` — 主入口，菜单逻辑和导航
-- `config.js` — 配置加载/保存/默认值
-- `styles.js` — 样式定义和预览函数
-- `generator.js` — 生成 statusline.sh 脚本
-- `i18n.js` — 国际化（中文/英文）
+- `src/main.rs` — Entry point, dispatches `--render` vs wizard
+- `src/config.rs` — Config structs, load/save, path helpers
+- `src/i18n.rs` — i18n (Chinese/English), static + template translations
+- `src/styles.rs` — ANSI color codes, rainbow/gradient rendering, bar formatting
+- `src/render.rs` — Render pipeline: reads stdin JSON, outputs formatted statusline
+- `src/cache.rs` — Stale-while-revalidate cache for crypto prices and usage data
+- `src/log.rs` — Error logging to `~/.claude/statusline/statusline.log`
+- `src/install.rs` — Save config, copy binary, update settings.json
+- `src/wizard/` — Interactive TUI wizard
+  - `mod.rs` — Wizard state machine (4-step flow)
+  - `terminal.rs` — Terminal control (raw mode, cursor, key reading)
+  - `select.rs` — Single-select component
+  - `multiselect.rs` — Multi-select component
+  - `confirm.rs` — Yes/No confirmation
+  - `spinner.rs` — Loading spinner
+  - `preview.rs` — Live preview rendering
+  - `step_progress.rs` — Step progress indicator
 
-## 开发流程
+## Key Directories
+
+- `~/.claude/statusline/` — Runtime directory
+  - `config.json` — User configuration
+  - `bin` — Compiled binary (copied during install)
+  - `statusline.log` — Error log
+- `/tmp/claude-statusline-*` — Cache files (crypto prices, usage data)
+
+## Development
 
 ```bash
-# 开发（无需编译）
-node cli.js            # 本地测试
-
-# 发布（GitHub Actions 自动发布）
-npm version patch      # 或 minor / major — 自动改 package.json + git commit + tag
-git push origin main --tags  # 推送代码和 tag → 触发 GitHub Actions 自动发布到 npm
+cargo run               # Run wizard
+cargo run -- --render   # Test render pipeline (reads JSON from stdin)
+cargo test              # Run all tests
+cargo clippy -- -D warnings  # Lint check
 ```
 
-## 版本管理规范
+## Versioning
 
-- 使用语义化版本: MAJOR.MINOR.PATCH
-  - PATCH: bug 修复、文案调整、样式调整
-  - MINOR: 新增段落类型、新增配置选项
-  - MAJOR: 配置格式变更、生成脚本格式变更
-- `npm version` 自动创建 git tag（v1.0.1 等）
-- Push tag 触发 GitHub Actions release workflow 自动发布到 npm
+Semantic versioning: MAJOR.MINOR.PATCH
 
-## 发布检查清单
+- PATCH: bug fixes, copy/style tweaks
+- MINOR: new segment types, new config options
+- MAJOR: config format changes, binary interface changes
 
-1. `node cli.js` — 本地验证可运行
-2. `npm version patch/minor/major` — 递增版本
-3. `git push origin main --tags` — 推送代码和 tag
-4. 观察 GitHub Actions 运行状态确认发布成功
+## Release Workflow
+
+### Steps
+
+```bash
+# 1. Verify locally
+cargo test && cargo clippy -- -D warnings
+
+# 2. Bump version in Cargo.toml, then create git commit + tag
+npm version patch      # or minor / major
+
+# 3. Push code and tag → triggers GitHub Actions auto-publish
+git push origin master --tags
+```
+
+### How it works
+
+1. `npm version` bumps `package.json`, creates a commit and `v*` tag
+2. `git push --tags` pushes the tag to GitHub
+3. GitHub Actions `release.yml` triggers on `v*` tags
+4. Workflow runs `npm publish` using `NPM_TOKEN` secret
+5. Workflow creates a GitHub Release via `gh release create`
+
+### Verify publish succeeded
+
+```bash
+# Check GitHub Actions status
+gh run list --repo LokiQ0713/claude-statusline-config --workflow=release.yml --limit 3
+
+# Check npm registry
+npm view claude-statusline-config version
+
+# Check GitHub Release was created
+gh release list --repo LokiQ0713/claude-statusline-config
+```
+
+### Troubleshooting publish failures
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `ENEEDAUTH` | `NPM_TOKEN` secret missing or invalid | Add/update token in GitHub repo Settings → Secrets → Actions |
+| `E403 previously published` | Version already exists on npm | Bump version again with `npm version patch` |
+| GitHub Release not created | `contents: write` permission missing | Check `release.yml` has `permissions: contents: write` |
 
 ## CI/CD
 
-- `.github/workflows/ci.yml` — push/PR 触发，Node 18/20/22 矩阵，语法和模块加载检查
-- `.github/workflows/release.yml` — `v*` tag 触发，自动发布到 npm + 创建 GitHub Release
-- 所需 Secret: `NPM_TOKEN`（在 GitHub repo Settings → Secrets → Actions 添加）
+- `.github/workflows/ci.yml` — push/PR to master, Rust build + test + clippy
+- `.github/workflows/release.yml` — `v*` tag trigger, auto-publish to npm + GitHub Release
+- Required secret: `NPM_TOKEN` (npm Automation token, add in GitHub repo Settings → Secrets → Actions)
 
-## 错误处理规范
+## Error Handling Convention
 
-所有用户可见的错误信息必须附带 AI 分析提示：
+All user-facing errors must include an AI analysis hint:
+
 ```
 Tip: Copy this error to AI for analysis
 See https://github.com/LokiQ0713/claude-statusline-config#troubleshooting
 ```
 
-## 关键逻辑备忘
+## Key Internals
 
-- 生成产物: `~/.claude/scripts/statusline.sh`（shell 脚本）
-- 配置文件: `~/.claude/statusline.config.json`
-- 自动更新: `~/.claude/settings.json` 的 `statusLine` 字段
+- Binary output: `~/.claude/statusline/bin` (compiled Rust binary)
+- Config file: `~/.claude/statusline/config.json`
+- Auto-updates: `statusLine` field in `~/.claude/settings.json`

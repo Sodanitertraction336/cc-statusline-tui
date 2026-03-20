@@ -36,7 +36,7 @@ where
     let content = fs::read_to_string(cache_path).ok();
     let age = file_age_secs(cache_path);
 
-    if age.map_or(true, |a| a >= max_age_secs) {
+    if age.is_none_or(|a| a >= max_age_secs) {
         // mkdir-based lock (same pattern as the .sh version)
         if fs::create_dir(lock_path).is_ok() {
             let lock = lock_path.to_string();

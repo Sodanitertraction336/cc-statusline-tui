@@ -1,9 +1,13 @@
+#[allow(dead_code)]
 mod config;
+#[allow(dead_code)]
 mod i18n;
 mod styles;
 mod render;
 mod install;
+#[allow(dead_code)]
 mod log;
+#[allow(dead_code)]
 mod cache;
 mod wizard;
 

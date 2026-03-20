@@ -313,7 +313,7 @@ fn render_git(seg: &crate::config::GitSegment, now: u64) -> Option<String> {
         {
             if output.status.success() {
                 let counts = String::from_utf8_lossy(&output.stdout);
-                let parts: Vec<&str> = counts.trim().split_whitespace().collect();
+                let parts: Vec<&str> = counts.split_whitespace().collect();
                 if parts.len() == 2 {
                     let ahead: i32 = parts[0].parse().unwrap_or(0);
                     let behind: i32 = parts[1].parse().unwrap_or(0);

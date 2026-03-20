@@ -80,8 +80,7 @@ pub fn run() {
     ];
     match select::select(t("mode.prompt"), &mode_opts, Some("defaults"), &mut |_| {}) {
         select::SelectResult::Selected(v) if v == "defaults" => {
-            let mut defaults = Config::default();
-            defaults.lang = config.lang.clone();
+            let defaults = Config { lang: config.lang.clone(), ..Config::default() };
             do_save(&defaults);
             return;
         }
@@ -618,7 +617,7 @@ fn step_configure_segments(
     }
 
     // Mark step as done
-    steps[1].summary = Some(format!("\u{2714}"));
+    steps[1].summary = Some("\u{2714}".to_string());
 
     StepResult::Next
 }

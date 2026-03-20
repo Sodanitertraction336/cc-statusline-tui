@@ -55,8 +55,8 @@ Supports English and Chinese. Language is selected on first run and saved to con
 
 ## How It Works
 
-1. Wizard → saves to `~/.claude/statusline.config.json`
-2. Generates shell script → `~/.claude/scripts/statusline.sh`
+1. Wizard → saves to `~/.claude/statusline/config.json`
+2. Copies binary to `~/.claude/statusline/bin`
 3. Updates `~/.claude/settings.json`
 4. Restart Claude Code to apply
 
@@ -64,9 +64,8 @@ Only touches config files. Re-running reads your saved config as defaults.
 
 ## Prerequisites
 
-- Node.js >= 18
+- Node.js >= 18 (only needed for `npx` install, not at runtime)
 - Claude Code installed (`~/.claude/` exists)
-- `jq`, `perl`, `curl` (macOS built-in, Linux needs install)
 
 ## Contributing
 

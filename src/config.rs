@@ -192,7 +192,7 @@ impl Default for CryptoSegment {
 // Segments container
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Segments {
     pub model: ModelSegment,
     pub cost: CostSegment,
@@ -201,20 +201,6 @@ pub struct Segments {
     pub git: GitSegment,
     pub context: ContextSegment,
     pub crypto: CryptoSegment,
-}
-
-impl Default for Segments {
-    fn default() -> Self {
-        Self {
-            model: ModelSegment::default(),
-            cost: CostSegment::default(),
-            usage: UsageSegment::default(),
-            path: PathSegment::default(),
-            git: GitSegment::default(),
-            context: ContextSegment::default(),
-            crypto: CryptoSegment::default(),
-        }
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -266,6 +252,6 @@ pub fn save_config(config: &Config) -> std::io::Result<()> {
         fs::create_dir_all(parent)?;
     }
     let json = serde_json::to_string_pretty(config)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+        .map_err(std::io::Error::other)?;
     fs::write(&path, json)
 }

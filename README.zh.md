@@ -55,8 +55,8 @@ npx claude-statusline-config
 
 ## 工作原理
 
-1. 向导式选配 → 保存到 `~/.claude/statusline.config.json`
-2. 生成 shell 脚本 → `~/.claude/scripts/statusline.sh`
+1. 向导式选配 → 保存到 `~/.claude/statusline/config.json`
+2. 复制二进制文件到 `~/.claude/statusline/bin`
 3. 自动更新 `~/.claude/settings.json`
 4. 重启 Claude Code 生效
 
@@ -64,9 +64,8 @@ npx claude-statusline-config
 
 ## 前提
 
-- Node.js >= 18
+- Node.js >= 18（仅 `npx` 安装时需要，运行时不需要）
 - 装过 Claude Code（`~/.claude/` 存在）
-- `jq`、`perl`、`curl`（macOS 自带，Linux 需装）
 
 ## 贡献
 

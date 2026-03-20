@@ -25,10 +25,12 @@ pub fn clear_screen() {
     .unwrap();
 }
 
+#[allow(dead_code)]
 pub fn move_to(row: u16, col: u16) {
     execute!(stdout(), cursor::MoveTo(col, row)).unwrap();
 }
 
+#[allow(dead_code)]
 pub fn clear_line() {
     execute!(stdout(), terminal::Clear(terminal::ClearType::CurrentLine)).unwrap();
 }
@@ -56,6 +58,7 @@ pub fn show_cursor() {
     execute!(stdout(), cursor::Show).unwrap();
 }
 
+#[allow(dead_code)]
 pub fn flush() {
     stdout().flush().unwrap();
 }
