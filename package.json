@@ -1,6 +1,6 @@
 {
   "name": "cc-statusline",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "Interactive CLI tool to configure Claude Code statusline",
   "bin": {
     "cc-statusline": "./cli.js"
@@ -20,7 +20,15 @@
   "bugs": {
     "url": "https://github.com/LokiQ0713/cc-statusline/issues"
   },
-  "keywords": ["cli", "statusline", "claude-code", "terminal", "configuration", "tui", "rust"],
+  "keywords": [
+    "cli",
+    "statusline",
+    "claude-code",
+    "terminal",
+    "configuration",
+    "tui",
+    "rust"
+  ],
   "author": "LokiQ0713",
   "license": "MIT",
   "os": [
