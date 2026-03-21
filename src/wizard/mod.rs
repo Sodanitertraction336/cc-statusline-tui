@@ -1,3 +1,22 @@
+//! Interactive TUI wizard -- 4-step configuration flow.
+//!
+//! Launched when the binary is run without arguments. Guides the user through:
+//! 1. Select which segments to enable (multiselect)
+//! 2. Configure each enabled segment (style, bar options, etc.)
+//! 3. Reorder segments (sequential position picking)
+//! 4. Confirm and save
+//!
+//! Uses snapshot-based back navigation: each step's config is saved before
+//! entry, restored on Back. The UI follows a @clack/prompts-style layout
+//! with a step progress indicator (completed/current/pending).
+//!
+//! Submodules provide reusable TUI components:
+//! - `select` / `multiselect` / `confirm` -- input prompts
+//! - `terminal` -- crossterm abstraction (raw mode, cursor, key reading)
+//! - `spinner` -- braille loading animation
+//! - `preview` -- live statusline preview using sample data
+//! - `step_progress` -- vertical step indicator
+
 pub mod confirm;
 pub mod multiselect;
 pub mod preview;
@@ -25,6 +44,14 @@ enum StepResult {
 // ── Public entry point ──────────────────────────────────────────────────────
 
 pub fn run() {
+    // Install panic hook to restore terminal state on crash
+    let default_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        let _ = crossterm::terminal::disable_raw_mode();
+        let _ = crossterm::execute!(std::io::stdout(), crossterm::cursor::Show);
+        default_hook(info);
+    }));
+
     // Preflight check
     if !dirs::home_dir()
         .map(|h| h.join(".claude").exists())
@@ -50,8 +77,33 @@ pub fn run() {
                 label: "中文".into(),
                 hint: None,
             },
+            select::SelectOption {
+                value: "ja".into(),
+                label: "日本語".into(),
+                hint: None,
+            },
+            select::SelectOption {
+                value: "ko".into(),
+                label: "한국어".into(),
+                hint: None,
+            },
+            select::SelectOption {
+                value: "es".into(),
+                label: "Español".into(),
+                hint: None,
+            },
+            select::SelectOption {
+                value: "pt".into(),
+                label: "Português".into(),
+                hint: None,
+            },
+            select::SelectOption {
+                value: "ru".into(),
+                label: "Русский".into(),
+                hint: None,
+            },
         ];
-        match select::select("Language / 语言", &opts, Some("en"), &mut |_| {}) {
+        match select::select("Language / 语言", &opts, Some("en"), &mut |_| {}, None) {
             select::SelectResult::Selected(v) => {
                 config.lang = v.clone();
                 i18n::set_lang(&v);
@@ -79,11 +131,11 @@ pub fn run() {
                 hint: Some(t("mode.customHint").into()),
             },
         ];
-        match select::select(t("mode.prompt"), &mode_opts, Some("defaults"), &mut |_| {}) {
+        match select::select(t("mode.prompt"), &mode_opts, Some("defaults"), &mut |_| {}, None) {
             select::SelectResult::Selected(v) if v == "defaults" => {
                 let defaults = Config { lang: config.lang.clone(), ..Config::default() };
                 show_header(&defaults, t("step.confirm"));
-                match confirm::confirm(t("prompt.saveDefaults"), true) {
+                match confirm::confirm(t("prompt.saveDefaults"), true, None) {
                     confirm::ConfirmResult::Yes => {
                         do_save(&defaults);
                         return;
@@ -147,12 +199,12 @@ pub fn run() {
                 }
             }
             StepResult::Back => {
-                if current_step > 0 {
-                    current_step -= 1;
-                    config = snapshots[current_step].clone();
-                    snapshots.truncate(current_step);
-                    steps[current_step].summary = None;
+                current_step = current_step.saturating_sub(1);
+                if let Some(snapshot) = snapshots.get(current_step) {
+                    config = snapshot.clone();
                 }
+                snapshots.truncate(current_step);
+                steps[current_step].summary = None;
             }
             StepResult::Cancelled => {
                 eprintln!("{}", t("msg.cancelled"));
@@ -187,11 +239,10 @@ fn show_screen(
     step_label: &str,
 ) {
     show_header(config, step_label);
-    println!(
-        "{}",
-        step_progress::render_step_progress(steps, current_step)
-    );
-    println!();
+    let completed = step_progress::render_completed_steps(steps, current_step);
+    if !completed.is_empty() {
+        print!("{}", completed);
+    }
 }
 
 fn do_save(config: &Config) {
@@ -280,7 +331,7 @@ fn bar_style_options() -> Vec<select::SelectOption> {
         select::SelectOption {
             value: "semantic".into(),
             label: t("barStyle.trafficLight").into(),
-            hint: None,
+            hint: Some(t("barStyle.trafficLightHint").into()),
         },
         select::SelectOption {
             value: "cyan".into(),
@@ -393,6 +444,16 @@ fn refresh_interval_options() -> Vec<select::SelectOption> {
             hint: None,
         },
         select::SelectOption {
+            value: "180".into(),
+            label: format!("180{}", t("unit.seconds")),
+            hint: None,
+        },
+        select::SelectOption {
+            value: "240".into(),
+            label: format!("240{}", t("unit.seconds")),
+            hint: None,
+        },
+        select::SelectOption {
             value: "300".into(),
             label: format!("300{}", t("unit.seconds")),
             hint: None,
@@ -433,18 +494,18 @@ fn icon_options() -> Vec<select::SelectOption> {
             hint: None,
         },
         select::SelectOption {
-            value: "\u{1f916}".into(),
-            label: "\u{1f916} Robot".into(),
+            value: "\u{1f98a}".into(),
+            label: "\u{1f98a} Fox".into(),
             hint: None,
         },
         select::SelectOption {
-            value: "\u{2728}".into(),
-            label: "\u{2728} Sparkles".into(),
+            value: "\u{1f422}".into(),
+            label: "\u{1f422} Turtle".into(),
             hint: None,
         },
         select::SelectOption {
-            value: "\u{26a1}".into(),
-            label: "\u{26a1} Lightning".into(),
+            value: "\u{1f430}".into(),
+            label: "\u{1f430} Rabbit".into(),
             hint: None,
         },
         select::SelectOption {
@@ -525,6 +586,7 @@ fn step_select_segments(
     config: &mut Config,
     steps: &mut [step_progress::StepInfo],
 ) -> StepResult {
+    let orig_segments = config.segments.clone();
     show_screen(config, steps, 0, t("step.segments"));
 
     let options: Vec<multiselect::MultiselectOption> = ALL_SEGMENTS
@@ -544,6 +606,7 @@ fn step_select_segments(
 
     let config_ptr = config as *mut Config;
 
+    let footer = step_progress::render_pending_footer(steps, 0);
     let result = multiselect::multiselect(
         t("prompt.selectSegments"),
         &options,
@@ -556,6 +619,7 @@ fn step_select_segments(
             }
             preview::update_preview_in_place(cfg, PREVIEW_ROW);
         },
+        Some(&footer),
     );
 
     match result {
@@ -586,8 +650,14 @@ fn step_select_segments(
 
             StepResult::Next
         }
-        multiselect::MultiselectResult::Back => StepResult::Back,
-        multiselect::MultiselectResult::Cancelled => StepResult::Cancelled,
+        multiselect::MultiselectResult::Back => {
+            config.segments = orig_segments;
+            StepResult::Back
+        }
+        multiselect::MultiselectResult::Cancelled => {
+            config.segments = orig_segments;
+            StepResult::Cancelled
+        }
     }
 }
 
@@ -664,10 +734,12 @@ fn configure_model(
     loop {
         match sub {
             0 => {
+                let orig = config.segments.model.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("model"), t("prompt.style"));
                 let opts = style_options();
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = select::select(
                     &prompt,
                     &opts,
@@ -677,6 +749,7 @@ fn configure_model(
                         cfg.segments.model.style = v.to_string();
                         preview::update_preview_in_place(cfg, PREVIEW_ROW);
                     },
+                    Some(&footer),
                 );
                 match result {
                     select::SelectResult::Selected(v) => {
@@ -684,18 +757,22 @@ fn configure_model(
                         sub = 1;
                     }
                     select::SelectResult::Back => {
-                        if sub == 0 {
-                            return StepResult::Back;
-                        }
+                        config.segments.model = orig;
+                        return StepResult::Back;
                     }
-                    select::SelectResult::Cancelled => return StepResult::Cancelled,
+                    select::SelectResult::Cancelled => {
+                        config.segments.model = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             1 => {
+                let orig = config.segments.model.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — Icon", seg_label("model"));
                 let opts = icon_options();
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = select::select(
                     &prompt,
                     &opts,
@@ -705,6 +782,7 @@ fn configure_model(
                         cfg.segments.model.icon = v.to_string();
                         preview::update_preview_in_place(cfg, PREVIEW_ROW);
                     },
+                    Some(&footer),
                 );
                 match result {
                     select::SelectResult::Selected(v) => {
@@ -712,9 +790,13 @@ fn configure_model(
                         return StepResult::Next;
                     }
                     select::SelectResult::Back => {
+                        config.segments.model = orig;
                         sub = 0;
                     }
-                    select::SelectResult::Cancelled => return StepResult::Cancelled,
+                    select::SelectResult::Cancelled => {
+                        config.segments.model = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             _ => return StepResult::Next,
@@ -729,10 +811,12 @@ fn configure_cost(
     steps: &mut [step_progress::StepInfo],
     step_label: &str,
 ) -> StepResult {
+    let orig = config.segments.cost.clone();
     show_screen(config, steps, 1, step_label);
     let prompt = format!("{} — {}", seg_label("cost"), t("prompt.style"));
     let opts = style_options();
     let config_ptr = config as *mut Config;
+    let footer = step_progress::render_pending_footer(steps, 1);
     let result = select::select(
         &prompt,
         &opts,
@@ -742,14 +826,21 @@ fn configure_cost(
             cfg.segments.cost.style = v.to_string();
             preview::update_preview_in_place(cfg, PREVIEW_ROW);
         },
+        Some(&footer),
     );
     match result {
         select::SelectResult::Selected(v) => {
             config.segments.cost.style = v;
             StepResult::Next
         }
-        select::SelectResult::Back => StepResult::Back,
-        select::SelectResult::Cancelled => StepResult::Cancelled,
+        select::SelectResult::Back => {
+            config.segments.cost = orig;
+            StepResult::Back
+        }
+        select::SelectResult::Cancelled => {
+            config.segments.cost = orig;
+            StepResult::Cancelled
+        }
     }
 }
 
@@ -766,6 +857,7 @@ fn configure_usage(
         match sub {
             0 => {
                 // Parts multiselect
+                let orig = config.segments.usage.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("usage"), t("prompt.showParts"));
                 let opts = vec![
@@ -796,6 +888,7 @@ fn configure_usage(
                     initial.push("reset".to_string());
                 }
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = multiselect::multiselect(
                     &prompt,
                     &opts,
@@ -809,6 +902,7 @@ fn configure_usage(
                         cfg.segments.usage.show_reset = selected.contains(&"reset".to_string());
                         preview::update_preview_in_place(cfg, PREVIEW_ROW);
                     },
+                    Some(&footer),
                 );
                 match result {
                     multiselect::MultiselectResult::Selected(selected) => {
@@ -819,17 +913,25 @@ fn configure_usage(
                             selected.contains(&"reset".to_string());
                         sub = 1;
                     }
-                    multiselect::MultiselectResult::Back => return StepResult::Back,
-                    multiselect::MultiselectResult::Cancelled => return StepResult::Cancelled,
+                    multiselect::MultiselectResult::Back => {
+                        config.segments.usage = orig;
+                        return StepResult::Back;
+                    }
+                    multiselect::MultiselectResult::Cancelled => {
+                        config.segments.usage = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             1 => {
+                let orig = config.segments.usage.clone();
                 // Bar style (only if bar is shown)
                 if config.segments.usage.show_bar {
                     show_screen(config, steps, 1, step_label);
                     let prompt = format!("{} — {}", seg_label("usage"), t("prompt.barStyle"));
                     let opts = bar_style_options();
                     let config_ptr = config as *mut Config;
+                    let footer = step_progress::render_pending_footer(steps, 1);
                     let result = select::select(
                         &prompt,
                         &opts,
@@ -839,6 +941,7 @@ fn configure_usage(
                             cfg.segments.usage.style = v.to_string();
                             preview::update_preview_in_place(cfg, PREVIEW_ROW);
                         },
+                        Some(&footer),
                     );
                     match result {
                         select::SelectResult::Selected(v) => {
@@ -846,9 +949,13 @@ fn configure_usage(
                             sub = 2;
                         }
                         select::SelectResult::Back => {
+                            config.segments.usage = orig;
                             sub = 0;
                         }
-                        select::SelectResult::Cancelled => return StepResult::Cancelled,
+                        select::SelectResult::Cancelled => {
+                            config.segments.usage = orig;
+                            return StepResult::Cancelled;
+                        }
                     }
                 } else {
                     // Text style (no bar shown)
@@ -856,6 +963,7 @@ fn configure_usage(
                     let prompt = format!("{} — {}", seg_label("usage"), t("prompt.textStyle"));
                     let opts = style_options();
                     let config_ptr = config as *mut Config;
+                    let footer = step_progress::render_pending_footer(steps, 1);
                     let result = select::select(
                         &prompt,
                         &opts,
@@ -865,6 +973,7 @@ fn configure_usage(
                             cfg.segments.usage.style = v.to_string();
                             preview::update_preview_in_place(cfg, PREVIEW_ROW);
                         },
+                        Some(&footer),
                     );
                     match result {
                         select::SelectResult::Selected(v) => {
@@ -873,18 +982,24 @@ fn configure_usage(
                             sub = 4;
                         }
                         select::SelectResult::Back => {
+                            config.segments.usage = orig;
                             sub = 0;
                         }
-                        select::SelectResult::Cancelled => return StepResult::Cancelled,
+                        select::SelectResult::Cancelled => {
+                            config.segments.usage = orig;
+                            return StepResult::Cancelled;
+                        }
                     }
                 }
             }
             2 => {
                 // Bar char
+                let orig = config.segments.usage.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("usage"), t("prompt.barChar"));
                 let opts = bar_char_options();
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = select::select(
                     &prompt,
                     &opts,
@@ -894,6 +1009,7 @@ fn configure_usage(
                         cfg.segments.usage.bar_char = v.to_string();
                         preview::update_preview_in_place(cfg, PREVIEW_ROW);
                     },
+                    Some(&footer),
                 );
                 match result {
                     select::SelectResult::Selected(v) => {
@@ -901,18 +1017,24 @@ fn configure_usage(
                         sub = 3;
                     }
                     select::SelectResult::Back => {
+                        config.segments.usage = orig;
                         sub = 1;
                     }
-                    select::SelectResult::Cancelled => return StepResult::Cancelled,
+                    select::SelectResult::Cancelled => {
+                        config.segments.usage = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             3 => {
                 // Bar length
+                let orig = config.segments.usage.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("usage"), t("prompt.barLength"));
                 let opts = bar_length_options();
                 let current = config.segments.usage.bar_length.to_string();
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = select::select(
                     &prompt,
                     &opts,
@@ -924,6 +1046,7 @@ fn configure_usage(
                             preview::update_preview_in_place(cfg, PREVIEW_ROW);
                         }
                     },
+                    Some(&footer),
                 );
                 match result {
                     select::SelectResult::Selected(v) => {
@@ -933,18 +1056,24 @@ fn configure_usage(
                         sub = 4;
                     }
                     select::SelectResult::Back => {
+                        config.segments.usage = orig;
                         sub = 2;
                     }
-                    select::SelectResult::Cancelled => return StepResult::Cancelled,
+                    select::SelectResult::Cancelled => {
+                        config.segments.usage = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             4 => {
                 // Refresh interval
+                let orig = config.segments.usage.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("usage"), t("prompt.refreshInterval"));
                 let opts = refresh_interval_options();
                 let current = config.segments.usage.refresh_interval.to_string();
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = select::select(
                     &prompt,
                     &opts,
@@ -956,6 +1085,7 @@ fn configure_usage(
                             preview::update_preview_in_place(cfg, PREVIEW_ROW);
                         }
                     },
+                    Some(&footer),
                 );
                 match result {
                     select::SelectResult::Selected(v) => {
@@ -965,13 +1095,17 @@ fn configure_usage(
                         return StepResult::Next;
                     }
                     select::SelectResult::Back => {
+                        config.segments.usage = orig;
                         if config.segments.usage.show_bar {
                             sub = 3;
                         } else {
                             sub = 1;
                         }
                     }
-                    select::SelectResult::Cancelled => return StepResult::Cancelled,
+                    select::SelectResult::Cancelled => {
+                        config.segments.usage = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             _ => return StepResult::Next,
@@ -991,10 +1125,12 @@ fn configure_path(
     loop {
         match sub {
             0 => {
+                let orig = config.segments.path.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("path"), t("prompt.style"));
                 let opts = style_options();
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = select::select(
                     &prompt,
                     &opts,
@@ -1004,22 +1140,31 @@ fn configure_path(
                         cfg.segments.path.style = v.to_string();
                         preview::update_preview_in_place(cfg, PREVIEW_ROW);
                     },
+                    Some(&footer),
                 );
                 match result {
                     select::SelectResult::Selected(v) => {
                         config.segments.path.style = v;
                         sub = 1;
                     }
-                    select::SelectResult::Back => return StepResult::Back,
-                    select::SelectResult::Cancelled => return StepResult::Cancelled,
+                    select::SelectResult::Back => {
+                        config.segments.path = orig;
+                        return StepResult::Back;
+                    }
+                    select::SelectResult::Cancelled => {
+                        config.segments.path = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             1 => {
+                let orig = config.segments.path.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("path"), t("prompt.maxLength"));
                 let opts = max_length_options();
                 let current = config.segments.path.max_length.to_string();
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = select::select(
                     &prompt,
                     &opts,
@@ -1031,6 +1176,7 @@ fn configure_path(
                             preview::update_preview_in_place(cfg, PREVIEW_ROW);
                         }
                     },
+                    Some(&footer),
                 );
                 match result {
                     select::SelectResult::Selected(v) => {
@@ -1040,9 +1186,13 @@ fn configure_path(
                         return StepResult::Next;
                     }
                     select::SelectResult::Back => {
+                        config.segments.path = orig;
                         sub = 0;
                     }
-                    select::SelectResult::Cancelled => return StepResult::Cancelled,
+                    select::SelectResult::Cancelled => {
+                        config.segments.path = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             _ => return StepResult::Next,
@@ -1062,6 +1212,7 @@ fn configure_git(
     loop {
         match sub {
             0 => {
+                let orig = config.segments.git.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("git"), t("prompt.showParts"));
                 let opts = vec![
@@ -1084,6 +1235,7 @@ fn configure_git(
                     initial.push("remote".to_string());
                 }
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = multiselect::multiselect(
                     &prompt,
                     &opts,
@@ -1095,6 +1247,7 @@ fn configure_git(
                         cfg.segments.git.show_remote = selected.contains(&"remote".to_string());
                         preview::update_preview_in_place(cfg, PREVIEW_ROW);
                     },
+                    Some(&footer),
                 );
                 match result {
                     multiselect::MultiselectResult::Selected(selected) => {
@@ -1104,15 +1257,23 @@ fn configure_git(
                             selected.contains(&"remote".to_string());
                         sub = 1;
                     }
-                    multiselect::MultiselectResult::Back => return StepResult::Back,
-                    multiselect::MultiselectResult::Cancelled => return StepResult::Cancelled,
+                    multiselect::MultiselectResult::Back => {
+                        config.segments.git = orig;
+                        return StepResult::Back;
+                    }
+                    multiselect::MultiselectResult::Cancelled => {
+                        config.segments.git = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             1 => {
+                let orig = config.segments.git.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("git"), t("prompt.style"));
                 let opts = style_options();
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = select::select(
                     &prompt,
                     &opts,
@@ -1122,6 +1283,7 @@ fn configure_git(
                         cfg.segments.git.style = v.to_string();
                         preview::update_preview_in_place(cfg, PREVIEW_ROW);
                     },
+                    Some(&footer),
                 );
                 match result {
                     select::SelectResult::Selected(v) => {
@@ -1129,9 +1291,13 @@ fn configure_git(
                         return StepResult::Next;
                     }
                     select::SelectResult::Back => {
+                        config.segments.git = orig;
                         sub = 0;
                     }
-                    select::SelectResult::Cancelled => return StepResult::Cancelled,
+                    select::SelectResult::Cancelled => {
+                        config.segments.git = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             _ => return StepResult::Next,
@@ -1151,6 +1317,7 @@ fn configure_context(
     loop {
         match sub {
             0 => {
+                let orig = config.segments.context.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("context"), t("prompt.showParts"));
                 let opts = vec![
@@ -1181,6 +1348,7 @@ fn configure_context(
                     initial.push("size".to_string());
                 }
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = multiselect::multiselect(
                     &prompt,
                     &opts,
@@ -1194,6 +1362,7 @@ fn configure_context(
                         cfg.segments.context.show_size = selected.contains(&"size".to_string());
                         preview::update_preview_in_place(cfg, PREVIEW_ROW);
                     },
+                    Some(&footer),
                 );
                 match result {
                     multiselect::MultiselectResult::Selected(selected) => {
@@ -1205,17 +1374,25 @@ fn configure_context(
                             selected.contains(&"size".to_string());
                         sub = 1;
                     }
-                    multiselect::MultiselectResult::Back => return StepResult::Back,
-                    multiselect::MultiselectResult::Cancelled => return StepResult::Cancelled,
+                    multiselect::MultiselectResult::Back => {
+                        config.segments.context = orig;
+                        return StepResult::Back;
+                    }
+                    multiselect::MultiselectResult::Cancelled => {
+                        config.segments.context = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             1 => {
+                let orig = config.segments.context.clone();
                 if config.segments.context.show_bar {
                     show_screen(config, steps, 1, step_label);
                     let prompt =
                         format!("{} — {}", seg_label("context"), t("prompt.barStyle"));
                     let opts = bar_style_options();
                     let config_ptr = config as *mut Config;
+                    let footer = step_progress::render_pending_footer(steps, 1);
                     let result = select::select(
                         &prompt,
                         &opts,
@@ -1225,6 +1402,7 @@ fn configure_context(
                             cfg.segments.context.style = v.to_string();
                             preview::update_preview_in_place(cfg, PREVIEW_ROW);
                         },
+                        Some(&footer),
                     );
                     match result {
                         select::SelectResult::Selected(v) => {
@@ -1232,9 +1410,13 @@ fn configure_context(
                             sub = 2;
                         }
                         select::SelectResult::Back => {
+                            config.segments.context = orig;
                             sub = 0;
                         }
-                        select::SelectResult::Cancelled => return StepResult::Cancelled,
+                        select::SelectResult::Cancelled => {
+                            config.segments.context = orig;
+                            return StepResult::Cancelled;
+                        }
                     }
                 } else {
                     show_screen(config, steps, 1, step_label);
@@ -1242,6 +1424,7 @@ fn configure_context(
                         format!("{} — {}", seg_label("context"), t("prompt.textStyle"));
                     let opts = style_options();
                     let config_ptr = config as *mut Config;
+                    let footer = step_progress::render_pending_footer(steps, 1);
                     let result = select::select(
                         &prompt,
                         &opts,
@@ -1251,6 +1434,7 @@ fn configure_context(
                             cfg.segments.context.style = v.to_string();
                             preview::update_preview_in_place(cfg, PREVIEW_ROW);
                         },
+                        Some(&footer),
                     );
                     match result {
                         select::SelectResult::Selected(v) => {
@@ -1258,17 +1442,23 @@ fn configure_context(
                             return StepResult::Next;
                         }
                         select::SelectResult::Back => {
+                            config.segments.context = orig;
                             sub = 0;
                         }
-                        select::SelectResult::Cancelled => return StepResult::Cancelled,
+                        select::SelectResult::Cancelled => {
+                            config.segments.context = orig;
+                            return StepResult::Cancelled;
+                        }
                     }
                 }
             }
             2 => {
+                let orig = config.segments.context.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("context"), t("prompt.barChar"));
                 let opts = bar_char_options();
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = select::select(
                     &prompt,
                     &opts,
@@ -1278,6 +1468,7 @@ fn configure_context(
                         cfg.segments.context.bar_char = v.to_string();
                         preview::update_preview_in_place(cfg, PREVIEW_ROW);
                     },
+                    Some(&footer),
                 );
                 match result {
                     select::SelectResult::Selected(v) => {
@@ -1285,17 +1476,23 @@ fn configure_context(
                         sub = 3;
                     }
                     select::SelectResult::Back => {
+                        config.segments.context = orig;
                         sub = 1;
                     }
-                    select::SelectResult::Cancelled => return StepResult::Cancelled,
+                    select::SelectResult::Cancelled => {
+                        config.segments.context = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             3 => {
+                let orig = config.segments.context.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("context"), t("prompt.barLength"));
                 let opts = bar_length_options();
                 let current = config.segments.context.bar_length.to_string();
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = select::select(
                     &prompt,
                     &opts,
@@ -1307,6 +1504,7 @@ fn configure_context(
                             preview::update_preview_in_place(cfg, PREVIEW_ROW);
                         }
                     },
+                    Some(&footer),
                 );
                 match result {
                     select::SelectResult::Selected(v) => {
@@ -1316,9 +1514,13 @@ fn configure_context(
                         return StepResult::Next;
                     }
                     select::SelectResult::Back => {
+                        config.segments.context = orig;
                         sub = 2;
                     }
-                    select::SelectResult::Cancelled => return StepResult::Cancelled,
+                    select::SelectResult::Cancelled => {
+                        config.segments.context = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             _ => return StepResult::Next,
@@ -1338,6 +1540,7 @@ fn configure_crypto(
     loop {
         match sub {
             0 => {
+                let orig = config.segments.crypto.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("crypto"), t("prompt.selectCoins"));
                 let opts: Vec<multiselect::MultiselectOption> = CRYPTO_LIST
@@ -1350,6 +1553,7 @@ fn configure_crypto(
                     .collect();
                 let initial = config.segments.crypto.coins.clone();
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = multiselect::multiselect(
                     &prompt,
                     &opts,
@@ -1360,21 +1564,30 @@ fn configure_crypto(
                         cfg.segments.crypto.coins = selected.to_vec();
                         preview::update_preview_in_place(cfg, PREVIEW_ROW);
                     },
+                    Some(&footer),
                 );
                 match result {
                     multiselect::MultiselectResult::Selected(selected) => {
                         config.segments.crypto.coins = selected;
                         sub = 1;
                     }
-                    multiselect::MultiselectResult::Back => return StepResult::Back,
-                    multiselect::MultiselectResult::Cancelled => return StepResult::Cancelled,
+                    multiselect::MultiselectResult::Back => {
+                        config.segments.crypto = orig;
+                        return StepResult::Back;
+                    }
+                    multiselect::MultiselectResult::Cancelled => {
+                        config.segments.crypto = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             1 => {
+                let orig = config.segments.crypto.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt = format!("{} — {}", seg_label("crypto"), t("prompt.style"));
                 let opts = style_options();
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = select::select(
                     &prompt,
                     &opts,
@@ -1384,6 +1597,7 @@ fn configure_crypto(
                         cfg.segments.crypto.style = v.to_string();
                         preview::update_preview_in_place(cfg, PREVIEW_ROW);
                     },
+                    Some(&footer),
                 );
                 match result {
                     select::SelectResult::Selected(v) => {
@@ -1391,18 +1605,24 @@ fn configure_crypto(
                         sub = 2;
                     }
                     select::SelectResult::Back => {
+                        config.segments.crypto = orig;
                         sub = 0;
                     }
-                    select::SelectResult::Cancelled => return StepResult::Cancelled,
+                    select::SelectResult::Cancelled => {
+                        config.segments.crypto = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             2 => {
+                let orig = config.segments.crypto.clone();
                 show_screen(config, steps, 1, step_label);
                 let prompt =
                     format!("{} — {}", seg_label("crypto"), t("prompt.refreshInterval"));
                 let opts = refresh_interval_options();
                 let current = config.segments.crypto.refresh_interval.to_string();
                 let config_ptr = config as *mut Config;
+                let footer = step_progress::render_pending_footer(steps, 1);
                 let result = select::select(
                     &prompt,
                     &opts,
@@ -1414,6 +1634,7 @@ fn configure_crypto(
                             preview::update_preview_in_place(cfg, PREVIEW_ROW);
                         }
                     },
+                    Some(&footer),
                 );
                 match result {
                     select::SelectResult::Selected(v) => {
@@ -1423,9 +1644,13 @@ fn configure_crypto(
                         return StepResult::Next;
                     }
                     select::SelectResult::Back => {
+                        config.segments.crypto = orig;
                         sub = 1;
                     }
-                    select::SelectResult::Cancelled => return StepResult::Cancelled,
+                    select::SelectResult::Cancelled => {
+                        config.segments.crypto = orig;
+                        return StepResult::Cancelled;
+                    }
                 }
             }
             _ => return StepResult::Next,
@@ -1451,7 +1676,8 @@ fn step_reorder(
     let reorder_prompt = tf("prompt.currentOrder", &[&current_labels.join(", ")]);
 
     show_screen(config, steps, 2, t("step.reorder"));
-    let result = confirm::confirm(&reorder_prompt, false);
+    let footer = step_progress::render_pending_footer(steps, 2);
+    let result = confirm::confirm(&reorder_prompt, false, Some(&footer));
 
     match result {
         confirm::ConfirmResult::No => {
@@ -1490,7 +1716,8 @@ fn step_reorder(
             })
             .collect();
 
-        let result = select::select(&prompt, &opts, None, &mut |_| {});
+        let footer = step_progress::render_pending_footer(steps, 2);
+        let result = select::select(&prompt, &opts, None, &mut |_| {}, Some(&footer));
 
         match result {
             select::SelectResult::Selected(v) => {
@@ -1530,7 +1757,8 @@ fn step_confirm(
 ) -> StepResult {
     show_screen(config, steps, 3, t("step.confirm"));
 
-    let result = confirm::confirm(t("prompt.save"), true);
+    let footer = step_progress::render_pending_footer(steps, 3);
+    let result = confirm::confirm(t("prompt.save"), true, Some(&footer));
 
     match result {
         confirm::ConfirmResult::Yes => StepResult::Next,

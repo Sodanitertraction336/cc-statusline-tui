@@ -1,3 +1,16 @@
+//! Multi-select prompt component with Space toggle and live preview.
+//!
+//! Renders a vertical list of checkable options. Space toggles the item
+//! under the cursor, Enter/Right confirms, Left goes back. Checked items
+//! use bright white, unchecked use dim styling.
+//!
+//! The `on_change` callback fires on every toggle, enabling live preview
+//! updates in the wizard. The `required` flag prevents confirming with
+//! zero selections.
+//!
+//! Key types: `MultiselectOption`, `MultiselectResult`
+//! Key function: `multiselect(message, options, initial, required, on_change, footer)`
+
 use super::terminal::{self, Key};
 use std::collections::HashSet;
 use std::io::{Write, stdout};
@@ -21,7 +34,9 @@ pub struct MultiselectOption {
 
 const RESET: &str = "\x1b[0m";
 const DIM: &str = "\x1b[2m";
+const BRIGHT_WHITE: &str = "\x1b[97m";
 const CYAN: &str = "\x1b[36m";
+const BRIGHT_CYAN: &str = "\x1b[1;36m";
 const BAR: &str = "│";
 const CORNER_TL: &str = "┌";
 const CORNER_BL: &str = "└";
@@ -30,25 +45,30 @@ const CORNER_BL: &str = "└";
 
 /// Render the multiselect UI into a byte buffer.
 ///
-/// Layout (clack-style):
-/// ```text
-///   ┌ Select segments to enable
-///   │  › ◼ Model       Opus4.6         ← cursor here, checked
-///   │    ◼ Cost        $0.42           ← checked
-///   │    ◻ Usage       ████░░░░ 25%    ← unchecked
-///   │    ◼ Context     ██████░░░░ 60%  ← checked
-///   └
-/// ```
+/// - `footer=None` → classic style (┌/└)
+/// - `footer=Some(f)` → step style (◆ header, footer replaces └)
+///
+/// Returns `(rendered_bytes, lines_up)` where `lines_up` is the number of
+/// `\r\n` sequences in the output (used by redraw to move cursor back up).
 pub fn draw_multiselect(
     message: &str,
     options: &[MultiselectOption],
     cursor: usize,
     selected: &HashSet<String>,
-) -> Vec<u8> {
+    footer: Option<&str>,
+) -> (Vec<u8>, u16) {
     let mut buf: Vec<u8> = Vec::new();
+    let mut line_count: u16 = 0;
 
-    // Top: ┌ message
-    let _ = write!(buf, "  {CYAN}{CORNER_TL}{RESET} {message}\r\n");
+    // Header
+    if footer.is_some() {
+        // Step mode: ◆ header
+        let _ = write!(buf, "  {BRIGHT_CYAN}\u{25C6}{RESET} {message}\r\n");
+    } else {
+        // Classic mode: ┌ header
+        let _ = write!(buf, "  {CYAN}{CORNER_TL}{RESET} {message}\r\n");
+    }
+    line_count += 1;
 
     for (i, opt) in options.iter().enumerate() {
         let cursor_indicator = if i == cursor { "›" } else { " " };
@@ -68,19 +88,41 @@ pub fn draw_multiselect(
                 "  {CYAN}{BAR}{RESET}  {cursor_indicator} \x1b[1m{check_marker} {}{hint_str}{RESET}\r\n",
                 opt.label
             );
+        } else if selected.contains(&opt.value) {
+            // Not at cursor but checked: bright white so it stands out
+            let _ = write!(
+                buf,
+                "  {CYAN}{BAR}{RESET}  {cursor_indicator} {BRIGHT_WHITE}{check_marker} {}{hint_str}{RESET}\r\n",
+                opt.label
+            );
         } else {
+            // Not at cursor, unchecked: dim
             let _ = write!(
                 buf,
                 "  {CYAN}{BAR}{RESET}  {cursor_indicator} {DIM}{check_marker} {}{hint_str}{RESET}\r\n",
                 opt.label
             );
         }
+        line_count += 1;
     }
 
-    // Bottom: └
-    let _ = write!(buf, "  {CYAN}{CORNER_BL}{RESET}");
+    // Footer
+    match footer {
+        None => {
+            // Classic mode: └
+            let _ = write!(buf, "  {CYAN}{CORNER_BL}{RESET}");
+        }
+        Some(f) if !f.is_empty() => {
+            // Step mode with pending steps: append footer content
+            let _ = write!(buf, "{f}");
+            line_count += f.matches("\r\n").count() as u16;
+        }
+        Some(_) => {
+            // Step mode, last step (empty footer): no └
+        }
+    }
 
-    buf
+    (buf, line_count)
 }
 
 /// Erase previous render and redraw.
@@ -89,14 +131,14 @@ fn redraw(
     options: &[MultiselectOption],
     cursor: usize,
     selected: &HashSet<String>,
+    footer: Option<&str>,
+    lines_up: u16,
 ) {
     let mut out = stdout();
-    // Move cursor up by (options.len() + 2) lines to cover header + options + footer
-    let lines_up = options.len() as u16 + 2;
     let _ = write!(out, "\x1b[{lines_up}A\r");
     // Clear from cursor to end of screen
     let _ = write!(out, "\x1b[J");
-    let rendered = draw_multiselect(message, options, cursor, selected);
+    let (rendered, _) = draw_multiselect(message, options, cursor, selected, footer);
     let _ = out.write_all(&rendered);
     let _ = out.flush();
 }
@@ -106,6 +148,7 @@ fn redraw(
 /// Multi-select with live preview.
 ///
 /// `on_change` is called whenever the selected set changes (Space toggle).
+/// `footer` controls step-integrated mode (see `draw_multiselect`).
 /// Returns [`MultiselectResult`].
 pub fn multiselect(
     message: &str,
@@ -113,6 +156,7 @@ pub fn multiselect(
     initial_values: &[String],
     required: bool,
     on_change: &mut dyn FnMut(&[String]),
+    footer: Option<&str>,
 ) -> MultiselectResult {
     if options.is_empty() {
         return MultiselectResult::Cancelled;
@@ -124,7 +168,7 @@ pub fn multiselect(
 
     // 2. Initial render
     let mut out = stdout();
-    let rendered = draw_multiselect(message, options, idx, &selected);
+    let (rendered, lines_up) = draw_multiselect(message, options, idx, &selected, footer);
     let _ = out.write_all(&rendered);
     let _ = out.flush();
 
@@ -138,13 +182,13 @@ pub fn multiselect(
             Key::Up => {
                 if idx > 0 {
                     idx -= 1;
-                    redraw(message, options, idx, &selected);
+                    redraw(message, options, idx, &selected, footer, lines_up);
                 }
             }
             Key::Down => {
                 if idx < options.len() - 1 {
                     idx += 1;
-                    redraw(message, options, idx, &selected);
+                    redraw(message, options, idx, &selected, footer, lines_up);
                 }
             }
             Key::Space => {
@@ -160,7 +204,7 @@ pub fn multiselect(
                     .map(|o| o.value.clone())
                     .collect();
                 on_change(&selected_vec);
-                redraw(message, options, idx, &selected);
+                redraw(message, options, idx, &selected, footer, lines_up);
             }
             Key::Enter | Key::Right => {
                 if required && selected.is_empty() {
@@ -263,7 +307,7 @@ mod tests {
         selected.insert("a".to_string());
         selected.insert("c".to_string());
 
-        let buf = draw_multiselect("Pick items", &options, 0, &selected);
+        let (buf, lines_up) = draw_multiselect("Pick items", &options, 0, &selected, None);
         let output = String::from_utf8(buf).unwrap();
 
         // Header
@@ -279,10 +323,47 @@ mod tests {
         // Hint appears
         assert!(output.contains("recommended"));
 
-        // Box-drawing characters
+        // Box-drawing characters (classic mode)
         assert!(output.contains("┌"));
         assert!(output.contains("│"));
         assert!(output.contains("└"));
+
+        // lines_up = header(1) + options(3) = 4
+        assert_eq!(lines_up, 4);
+    }
+
+    #[test]
+    fn test_draw_multiselect_step_mode() {
+        let options = vec![
+            MultiselectOption {
+                value: "a".into(),
+                label: "Alpha".into(),
+                hint: None,
+            },
+            MultiselectOption {
+                value: "b".into(),
+                label: "Beta".into(),
+                hint: None,
+            },
+        ];
+
+        let selected = HashSet::new();
+
+        // Step mode with footer
+        let footer = "\r\n  \x1b[2m│\x1b[0m\r\n  \x1b[2m○ 3/4 Reorder\x1b[0m";
+        let (buf, lines_up) = draw_multiselect("Pick", &options, 0, &selected, Some(footer));
+        let output = String::from_utf8(buf).unwrap();
+
+        // Step mode uses ◆ instead of ┌
+        assert!(output.contains("\u{25C6}"));
+        assert!(!output.contains("┌"));
+        assert!(!output.contains("└"));
+
+        // Footer content is appended
+        assert!(output.contains("3/4 Reorder"));
+
+        // lines_up = header(1) + options(2) + footer \r\n count(2) = 5
+        assert_eq!(lines_up, 5);
     }
 
     #[test]
@@ -308,7 +389,7 @@ mod tests {
         let selected = HashSet::new();
 
         // Cursor at index 1
-        let buf = draw_multiselect("Test", &options, 1, &selected);
+        let (buf, _) = draw_multiselect("Test", &options, 1, &selected, None);
         let output = String::from_utf8(buf).unwrap();
 
         // Split into lines to check cursor position
@@ -335,7 +416,7 @@ mod tests {
     #[test]
     fn test_multiselect_empty_returns_cancelled() {
         let options: Vec<MultiselectOption> = vec![];
-        let result = multiselect("Empty", &options, &[], false, &mut |_| {});
+        let result = multiselect("Empty", &options, &[], false, &mut |_| {}, None);
         assert_eq!(result, MultiselectResult::Cancelled);
     }
 }

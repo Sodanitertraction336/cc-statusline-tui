@@ -1,3 +1,17 @@
+//! File-based stale-while-revalidate cache for crypto prices and usage data.
+//!
+//! Each cache is a plain text file in `/tmp/claude-statusline-*`. When the
+//! cache is older than `max_age_secs`, a background thread fetches fresh
+//! data while the stale content is returned immediately. A `mkdir`-based
+//! lock prevents concurrent refresh attempts.
+//!
+//! Key functions:
+//! - `ensure_caches_fresh(config)` -- called from `render::run()` to trigger
+//!   background refreshes for enabled crypto/usage segments
+//! - `read_or_refresh(cache, lock, max_age, fetch_fn)` -- core SWR logic
+//! - `fetch_crypto(coins)` -- fetches prices from Binance API
+//! - `fetch_usage()` -- fetches 5h usage from Anthropic OAuth API
+
 use std::fs;
 use std::time::SystemTime;
 
@@ -8,10 +22,12 @@ const CRYPTO_LOCK: &str = "/tmp/claude-statusline-crypto-lock";
 const USAGE_CACHE: &str = "/tmp/claude-statusline-usage-cache";
 const USAGE_LOCK: &str = "/tmp/claude-statusline-usage-lock";
 
+#[allow(dead_code)]
 pub fn crypto_cache_path() -> &'static str {
     CRYPTO_CACHE
 }
 
+#[allow(dead_code)]
 pub fn usage_cache_path() -> &'static str {
     USAGE_CACHE
 }

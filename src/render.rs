@@ -1,3 +1,17 @@
+//! Statusline render pipeline -- the performance-critical hot path.
+//!
+//! Invoked by Claude Code on every status refresh via `--render`. Reads
+//! JSON from stdin (model, workspace, context window, cost), loads the
+//! user's config, and outputs a single ANSI-colored statusline string.
+//!
+//! Key functions:
+//! - `run()` -- entry point: read stdin, iterate config.order, print segments
+//! - `render_segment()` -- dispatcher to per-segment renderers
+//! - `format_model()` / `format_path()` / `format_size()` -- formatting helpers
+//!
+//! The crypto and usage segments read from file-based caches populated by
+//! `cache::ensure_caches_fresh()`, which is called at the start of `run()`.
+
 use serde::Deserialize;
 use std::io::Read;
 
@@ -117,12 +131,14 @@ pub fn format_model(id: &str) -> String {
 /// If the result exceeds `max_length`, show only the last path component.
 pub fn format_path(cwd: &str, home: &str, max_length: usize) -> String {
     let replaced = if !home.is_empty() && cwd.starts_with(home) {
-        format!("~{}", &cwd[home.len()..])
+        cwd.strip_prefix(home)
+            .map(|rest| format!("~{rest}"))
+            .unwrap_or_else(|| cwd.to_string())
     } else {
         cwd.to_string()
     };
 
-    if replaced.len() <= max_length {
+    if replaced.chars().count() <= max_length {
         replaced
     } else {
         // Return the last path component (directory name)
@@ -172,7 +188,7 @@ pub fn run() {
         .unwrap_or_default();
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
+        .unwrap_or_default()
         .as_secs();
 
     // Ensure crypto/usage caches are fresh (spawns background refresh if stale)
@@ -419,24 +435,16 @@ fn format_countdown(resets_at: &str, now: u64) -> Option<String> {
         return None;
     }
 
-    // Try to parse reset epoch from the ISO 8601 timestamp using `date` command
-    let output = std::process::Command::new("date")
-        .args([
-            "-juf",
-            "%Y-%m-%dT%H:%M:%S%z",
-            &clean.replace(":", ""),
-            "+%s",
-        ])
-        .output()
-        .ok()?;
+    // Parse reset epoch from the ISO 8601 timestamp using chrono
+    use chrono::DateTime;
 
-    if !output.status.success() {
-        return None;
-    }
-    let epoch: u64 = String::from_utf8_lossy(&output.stdout)
-        .trim()
-        .parse()
+    let dt = DateTime::parse_from_rfc3339(clean)
+        .or_else(|_| {
+            // Try without colon in timezone offset (e.g., +0800)
+            chrono::DateTime::parse_from_str(clean, "%Y-%m-%dT%H:%M:%S%z")
+        })
         .ok()?;
+    let epoch = dt.timestamp() as u64;
 
     if epoch <= now {
         return None;

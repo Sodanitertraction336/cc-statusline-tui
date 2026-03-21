@@ -1,3 +1,16 @@
+//! Live statusline preview renderer using hardcoded sample data.
+//!
+//! Generates a preview string that looks like the real statusline but uses
+//! fixed sample values (e.g., model="Opus4.6", cost="$0.42", usage=25%).
+//! This lets the user see how their configuration will look before saving.
+//!
+//! Key functions:
+//! - `render_preview(config)` -- returns the full preview string
+//! - `update_preview_in_place(config, row)` -- redraws the preview line
+//!   at a specific terminal row without moving the main cursor
+//!
+//! Called from the wizard on every config change (live preview via callbacks).
+
 use crate::config::Config;
 use crate::styles::{format_bar, format_colored};
 use std::time::SystemTime;
@@ -21,7 +34,7 @@ const SAMPLE_PRICES: &[(&str, u64)] = &[
 pub fn render_preview(config: &Config) -> String {
     let now = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
-        .unwrap()
+        .unwrap_or_default()
         .as_secs();
 
     let mut parts: Vec<String> = Vec::new();

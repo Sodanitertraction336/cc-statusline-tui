@@ -1,14 +1,25 @@
+//! Error logging to `~/.claude/statusline/statusline.log`.
+//!
+//! Provides a simple `error(msg)` function that appends timestamped error
+//! lines to the log file. Automatically truncates when the file exceeds
+//! 100KB to prevent unbounded growth.
+//!
+//! Currently used as a diagnostic facility for render-pipeline errors.
+//! All IO errors are silently ignored (best-effort logging).
+
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+#[allow(dead_code)]
 const MAX_LOG_SIZE: u64 = 100_000; // 100KB
 
 /// Log an error message to the statusline log file.
 ///
 /// Best-effort: all IO errors are silently ignored.
+#[allow(dead_code)]
 pub fn error(msg: &str) {
     let path = crate::config::log_path();
     let _ = error_to_path(&path, msg);
@@ -17,6 +28,7 @@ pub fn error(msg: &str) {
 /// Internal implementation that writes to an arbitrary path.
 /// Returns `Result` so tests can verify behaviour, but the public
 /// `error()` function discards any error.
+#[allow(dead_code)]
 fn error_to_path(path: &Path, msg: &str) -> std::io::Result<()> {
     // Ensure parent directory exists
     if let Some(parent) = path.parent() {

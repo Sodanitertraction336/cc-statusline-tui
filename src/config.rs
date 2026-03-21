@@ -1,3 +1,17 @@
+//! Configuration structs, JSON persistence, and path helpers.
+//!
+//! Defines the `Config` type (top-level) and per-segment structs (`ModelSegment`,
+//! `CostSegment`, `UsageSegment`, `PathSegment`, `GitSegment`, `ContextSegment`,
+//! `CryptoSegment`) that map to `~/.claude/statusline/config.json`.
+//!
+//! Key functions:
+//! - `statusline_dir()` / `config_path()` / `bin_path()` / `log_path()` -- path helpers
+//! - `load_config()` -- deserialize config from disk (falls back to defaults)
+//! - `save_config()` -- serialize config to disk
+//!
+//! Used by every other module: the wizard writes configs, the render pipeline
+//! reads them, and the install step references path helpers.
+
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
@@ -36,6 +50,7 @@ pub fn bin_path() -> PathBuf {
 }
 
 /// Returns `~/.claude/statusline/statusline.log`
+#[allow(dead_code)]
 pub fn log_path() -> PathBuf {
     statusline_dir().join("statusline.log")
 }
@@ -217,7 +232,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
-            lang: "zh".into(),
+            lang: String::new(),
             order: vec![
                 "model".into(),
                 "cost".into(),

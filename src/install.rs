@@ -1,3 +1,16 @@
+//! Installation logic: save config, copy binary, update Claude Code settings.
+//!
+//! Called at the end of the wizard after the user confirms. Performs three
+//! steps atomically:
+//! 1. Save `Config` to `~/.claude/statusline/config.json`
+//! 2. Copy the running binary to `~/.claude/statusline/bin`
+//! 3. Insert/update `statusLine` in `~/.claude/settings.json`
+//!
+//! Key function: `save_and_apply(config)` -- orchestrates all three steps.
+//!
+//! After installation, Claude Code picks up the new statusline command
+//! on its next refresh cycle.
+
 use std::fs;
 use std::path::Path;
 
@@ -63,7 +76,7 @@ fn update_settings_at(settings_path: &Path) -> Result<(), String> {
         "padding": 0
     });
 
-    let json = serde_json::to_string_pretty(&settings).unwrap();
+    let json = serde_json::to_string_pretty(&settings).map_err(|e| e.to_string())?;
     fs::write(settings_path, json + "\n").map_err(|e| e.to_string())?;
     Ok(())
 }

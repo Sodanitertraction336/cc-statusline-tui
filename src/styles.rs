@@ -1,3 +1,18 @@
+//! ANSI color rendering for the statusline.
+//!
+//! Provides named colors, the ultrathink rainbow effect (7-color shimmer),
+//! progress bar formatting (gradient/semantic/solid), and semantic
+//! traffic-light thresholds.
+//!
+//! Key functions:
+//! - `color_code(style)` -- map a style name to an ANSI escape sequence
+//! - `format_colored(style, text, timestamp)` -- wrap text in color or rainbow
+//! - `format_bar(style, bar_char, length, ratio, timestamp)` -- render a progress bar
+//! - `format_rainbow(text, offset, shimmer)` -- per-character true-color rainbow
+//!
+//! This is the hot path -- called from `render::run()` and `wizard::preview`
+//! on every statusline refresh or preview update.
+
 // ── Color codes (ANSI escape sequences) ──────────────────────────────────────
 
 pub fn color_code(style: &str) -> &'static str {
@@ -78,11 +93,11 @@ pub fn bar_chars(name: &str) -> BarChars {
 // ── Semantic color helper ────────────────────────────────────────────────────
 
 /// Returns the ANSI color code for a "traffic-light" semantic bar:
-/// high ratio (>= 0.75) = soft-red, medium (>= 0.50) = soft-yellow, low = soft-green.
+/// high ratio (>= 0.60) = soft-red, medium (>= 0.30) = soft-yellow, low = soft-green.
 pub fn semantic_color(ratio: f64) -> &'static str {
-    if ratio >= 0.75 {
+    if ratio >= 0.60 {
         color_code("soft-red")
-    } else if ratio >= 0.50 {
+    } else if ratio >= 0.30 {
         color_code("soft-yellow")
     } else {
         color_code("soft-green")
@@ -100,10 +115,11 @@ pub fn format_rainbow(text: &str, offset: usize, use_shimmer: bool) -> String {
     } else {
         &ULTRATHINK_MAIN
     };
+    use std::fmt::Write;
     let mut out = String::new();
     for (i, ch) in text.chars().enumerate() {
         let (r, g, b) = palette[(i + offset) % 7];
-        out.push_str(&format!("\x1b[38;2;{};{};{}m{}", r, g, b, ch));
+        let _ = write!(out, "\x1b[38;2;{};{};{}m{}", r, g, b, ch);
     }
     out.push_str(RESET);
     out
@@ -146,6 +162,7 @@ pub fn format_bar(
     let empty = length.saturating_sub(filled);
     let bc = bar_chars(bar_char_name);
 
+    use std::fmt::Write;
     let mut out = String::new();
 
     // ── Filled portion ──────────────────────────────────────────────────
@@ -173,7 +190,7 @@ pub fn format_bar(
             let g = (g1 as f64 + (g2 as f64 - g1 as f64) * frac).round() as u8;
             let b = (b1 as f64 + (b2 as f64 - b1 as f64) * frac).round() as u8;
 
-            out.push_str(&format!("\x1b[38;2;{};{};{}m{}", r, g, b, bc.filled));
+            let _ = write!(out, "\x1b[38;2;{};{};{}m{}", r, g, b, bc.filled);
         }
     } else if style == "semantic" {
         let color = semantic_color(ratio);
@@ -285,12 +302,12 @@ mod tests {
 
     #[test]
     fn test_format_bar_semantic() {
-        // ratio 0.3 → soft-green
-        let low = format_bar("semantic", "full-block", 10, 0.3, 0);
+        // ratio 0.2 → soft-green
+        let low = format_bar("semantic", "full-block", 10, 0.2, 0);
         assert!(low.contains(color_code("soft-green")));
 
-        // ratio 0.6 → soft-yellow
-        let mid = format_bar("semantic", "full-block", 10, 0.6, 0);
+        // ratio 0.4 → soft-yellow
+        let mid = format_bar("semantic", "full-block", 10, 0.4, 0);
         assert!(mid.contains(color_code("soft-yellow")));
 
         // ratio 0.9 → soft-red
@@ -301,10 +318,10 @@ mod tests {
     #[test]
     fn test_semantic_color() {
         assert_eq!(semantic_color(0.0), color_code("soft-green"));
-        assert_eq!(semantic_color(0.49), color_code("soft-green"));
-        assert_eq!(semantic_color(0.50), color_code("soft-yellow"));
-        assert_eq!(semantic_color(0.74), color_code("soft-yellow"));
-        assert_eq!(semantic_color(0.75), color_code("soft-red"));
+        assert_eq!(semantic_color(0.29), color_code("soft-green"));
+        assert_eq!(semantic_color(0.30), color_code("soft-yellow"));
+        assert_eq!(semantic_color(0.59), color_code("soft-yellow"));
+        assert_eq!(semantic_color(0.60), color_code("soft-red"));
         assert_eq!(semantic_color(1.0), color_code("soft-red"));
     }
 

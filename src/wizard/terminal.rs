@@ -1,3 +1,14 @@
+//! Crossterm terminal abstraction for the TUI wizard.
+//!
+//! Wraps crossterm primitives into simple functions for raw mode control,
+//! cursor visibility, screen clearing, and key reading. Provides a `Key`
+//! enum that abstracts over crossterm's key events.
+//!
+//! Note: crossterm 0.28 on macOS fires both Press and Release events for
+//! each physical key press. `read_key()` filters to Press only.
+//!
+//! Used by all wizard components (`select`, `multiselect`, `confirm`, `spinner`).
+
 use crossterm::{
     cursor, execute, queue,
     event::{self, Event, KeyCode, KeyEvent, KeyModifiers},

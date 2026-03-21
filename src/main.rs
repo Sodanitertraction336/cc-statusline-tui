@@ -1,14 +1,20 @@
-#[allow(dead_code)]
-mod config;
-#[allow(dead_code)]
-mod i18n;
-mod styles;
-mod render;
-mod install;
-#[allow(dead_code)]
-mod log;
-#[allow(dead_code)]
+//! Entry point for the claude-statusline-config binary.
+//!
+//! This single binary serves two purposes depending on arguments:
+//! - No args: launches the interactive TUI wizard (`wizard::run`)
+//! - `--render`: reads JSON from stdin and outputs an ANSI-colored statusline
+//!   string (`render::run`), invoked by Claude Code on every status refresh.
+//!
+//! All configuration, rendering, and installation logic is delegated to
+//! submodules. See each module's doc comment for details.
+
 mod cache;
+mod config;
+mod i18n;
+mod install;
+mod log;
+mod render;
+mod styles;
 mod wizard;
 
 fn main() {

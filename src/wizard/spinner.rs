@@ -1,3 +1,11 @@
+//! Braille animation spinner for async operations.
+//!
+//! Spawns a background thread that cycles through 10 braille frames at
+//! 80ms intervals. Used during the "Saving config..." step at the end
+//! of the wizard.
+//!
+//! Usage: `let sp = Spinner::start("Saving..."); /* do work */ sp.stop("Done");`
+
 use std::io::{Write, stdout};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
