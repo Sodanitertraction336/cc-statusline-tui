@@ -13,14 +13,14 @@ Interactive CLI tool to configure the Claude Code statusline.
 
 - Language: Rust (2021 edition)
 - Entry: `src/main.rs`
-- Dependencies: `serde` / `serde_json` (config serialization), `crossterm` (terminal UI), `ureq` (HTTP), `dirs` (home directory), `tempfile` (tests)
+- Dependencies: `serde` / `serde_json` (config serialization), `crossterm` (terminal UI), `ureq` (HTTP), `dirs` (home directory), `chrono` (time parsing), `tempfile` (tests)
 - System deps: none (was jq/perl/curl in the JS version)
 
 ## File Structure
 
 - `src/main.rs` — Entry point, dispatches `--render` vs wizard
 - `src/config.rs` — Config structs, load/save, path helpers
-- `src/i18n.rs` — i18n (Chinese/English), static + template translations
+- `src/i18n.rs` — i18n (en/zh/ja/ko/es/pt/ru), static + template translations
 - `src/styles.rs` — ANSI color codes, rainbow/gradient rendering, bar formatting
 - `src/render.rs` — Render pipeline: reads stdin JSON, outputs formatted statusline
 - `src/cache.rs` — Stale-while-revalidate cache for crypto prices and usage data
@@ -35,6 +35,12 @@ Interactive CLI tool to configure the Claude Code statusline.
   - `spinner.rs` — Loading spinner
   - `preview.rs` — Live preview rendering
   - `step_progress.rs` — Step progress indicator
+
+## npm Distribution
+
+- `package.json` — npm package manifest (thin shell, no Rust source)
+- `cli.js` — Forwards execution to `~/.claude/statusline/bin/claude-statusline-config`
+- `postinstall.js` — Downloads platform-specific binary from GitHub Releases on `npm install`
 
 ## Key Directories
 
@@ -73,7 +79,7 @@ cargo test && cargo clippy -- -D warnings
 npm version patch      # or minor / major
 
 # 3. Push code and tag → triggers GitHub Actions auto-publish
-git push origin master --tags
+git push origin main --tags
 ```
 
 ### How it works
@@ -107,7 +113,7 @@ gh release list --repo LokiQ0713/claude-statusline-config
 
 ## CI/CD
 
-- `.github/workflows/ci.yml` — push/PR to master, Rust build + test + clippy
+- `.github/workflows/ci.yml` — push/PR to main, Rust build + test + clippy
 - `.github/workflows/release.yml` — `v*` tag trigger, auto-publish to npm + GitHub Release
 - Required secret: `NPM_TOKEN` (npm Automation token, add in GitHub repo Settings → Secrets → Actions)
 
