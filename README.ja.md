@@ -91,6 +91,44 @@ English, 中文, 日本語, 한국어, Español, Português, Русский。
 - Claude Codeがインストール済み（`~/.claude/` が存在すること）
 - Node.js ≥ 18（`npx` インストール時のみ — 実行時は不要）
 
+## セキュリティとプライバシー
+
+あなたのデータ、勝手に触りません。安心してください：
+
+- **Cryptoセグメント**はBinanceの公開API（`api.binance.com`）にリクエストします — 認証不要、個人データの送信なし
+- **Usageセグメント**はmacOSキーチェーンからOAuthトークン（`Claude Code-credentials`）を読み取り、AnthropicのUsage APIに問い合わせます
+- **npm postinstall**はGitHub Releasesからプラットフォーム対応のバイナリをダウンロードします — それ以外の外部ダウンロードなし
+- すべてのデータは`/tmp/claude-statusline-*`ファイルにローカルキャッシュされます
+- テレメトリなし、アナリティクスなし、他のどこにもデータを送信しません
+- 詳細は[SECURITY.md](SECURITY.md)をご覧ください
+
+## アンインストール
+
+```bash
+# 設定とバイナリを削除
+rm -rf ~/.claude/statusline/
+
+# Claude Code設定からステータスラインを削除
+# ~/.claude/settings.json を編集して "statusLine" キーを削除
+
+# キャッシュを削除
+rm -f /tmp/claude-statusline-*
+
+# パッケージマネージャーからアンインストール
+npm uninstall -g claude-statusline-config
+# または: brew uninstall claude-statusline-config
+# または: cargo uninstall claude-statusline-config
+```
+
+## トラブルシューティング
+
+| 問題 | 解決策 |
+|------|--------|
+| "Binary not found" | `npx claude-statusline-config` を再実行して再ダウンロード |
+| "Is a directory" エラー | `~/.claude/statusline/bin/claude-statusline-config` がファイルであり、ディレクトリでないことを確認 |
+| 暗号通貨が表示されない | `/tmp/claude-statusline-crypto-lock` ディレクトリがあれば削除（古いロック） |
+| 変更が反映されない | 設定保存後にClaude Codeを再起動 |
+
 ## コントリビューション
 
 バグ発見？新機能のアイデア？[Issueを作成](https://github.com/LokiQ0713/claude-statusline-config/issues)してください。PRも大歓迎。

@@ -91,6 +91,42 @@ Re-running the wizard loads your existing config as defaults. Non-destructive. P
 - Claude Code installed (`~/.claude/` exists)
 - Node.js ≥ 18 (only for `npx` install — not needed at runtime)
 
+## Security and Privacy
+
+- The **crypto segment** makes requests to Binance public API (`api.binance.com`) — no authentication required, no personal data sent
+- The **usage segment** reads an OAuth token from the macOS keychain (`Claude Code-credentials`) to query Anthropic's usage API
+- The **npm postinstall** downloads a platform-specific binary from GitHub Releases — no other external downloads
+- All data is cached locally in `/tmp/claude-statusline-*` files
+- No telemetry, no analytics, no data sent anywhere else
+- For full details see [SECURITY.md](SECURITY.md)
+
+## Uninstall
+
+```bash
+# Remove config and binary
+rm -rf ~/.claude/statusline/
+
+# Remove statusline from Claude Code settings
+# Edit ~/.claude/settings.json and delete the "statusLine" key
+
+# Remove cache
+rm -f /tmp/claude-statusline-*
+
+# Uninstall from package manager
+npm uninstall -g claude-statusline-config
+# or: brew uninstall claude-statusline-config
+# or: cargo uninstall claude-statusline-config
+```
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| "Binary not found" | Run `npx claude-statusline-config` again to re-download |
+| "Is a directory" error | Check that `~/.claude/statusline/bin/claude-statusline-config` is a file, not a directory |
+| Crypto not showing | Delete `/tmp/claude-statusline-crypto-lock` directory if it exists (stale lock) |
+| Changes not visible | Restart Claude Code after saving configuration |
+
 ## Contributing
 
 Found a bug? Want a feature? [Open an issue](https://github.com/LokiQ0713/claude-statusline-config/issues). PRs welcome.

@@ -20,6 +20,8 @@
   "bugs": {
     "url": "https://github.com/LokiQ0713/claude-statusline-config/issues"
   },
+  "keywords": ["cli", "statusline", "claude-code", "terminal", "configuration", "tui", "rust"],
+  "author": "LokiQ0713",
   "license": "MIT",
   "os": [
     "darwin",

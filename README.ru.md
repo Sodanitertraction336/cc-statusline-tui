@@ -91,6 +91,44 @@ English, 中文, 日本語, 한국어, Español, Português, Русский.
 - Установлен Claude Code (существует `~/.claude/`)
 - Node.js ≥ 18 (только для установки через `npx` — в рантайме не нужен)
 
+## Безопасность и конфиденциальность
+
+Твои данные мы не трогаем. Честно:
+
+- **Crypto-сегмент** обращается к публичному API Binance (`api.binance.com`) — без аутентификации, без отправки личных данных
+- **Usage-сегмент** читает OAuth-токен из связки ключей macOS (`Claude Code-credentials`) для запроса к API использования Anthropic
+- **npm postinstall** скачивает бинарник для твоей платформы из GitHub Releases — больше ничего не скачивает
+- Все данные кэшируются локально в файлах `/tmp/claude-statusline-*`
+- Никакой телеметрии, никакой аналитики, данные никуда больше не отправляются
+- Подробности в [SECURITY.md](SECURITY.md)
+
+## Удаление
+
+```bash
+# Удалить конфиг и бинарник
+rm -rf ~/.claude/statusline/
+
+# Удалить статусную строку из настроек Claude Code
+# Отредактируй ~/.claude/settings.json и удали ключ "statusLine"
+
+# Удалить кэш
+rm -f /tmp/claude-statusline-*
+
+# Удалить через пакетный менеджер
+npm uninstall -g claude-statusline-config
+# или: brew uninstall claude-statusline-config
+# или: cargo uninstall claude-statusline-config
+```
+
+## Решение проблем
+
+| Проблема | Решение |
+|----------|---------|
+| "Binary not found" | Запусти `npx claude-statusline-config` ещё раз для повторной загрузки |
+| Ошибка "Is a directory" | Проверь, что `~/.claude/statusline/bin/claude-statusline-config` — это файл, а не директория |
+| Crypto не отображается | Удали директорию `/tmp/claude-statusline-crypto-lock`, если она существует (устаревшая блокировка) |
+| Изменения не видны | Перезапусти Claude Code после сохранения настроек |
+
 ## Участие в проекте
 
 Нашёл баг? Хочешь фичу? [Создай issue](https://github.com/LokiQ0713/claude-statusline-config/issues). PR приветствуются.

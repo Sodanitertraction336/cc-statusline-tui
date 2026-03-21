@@ -91,6 +91,44 @@ Si lo ejecutas de nuevo, carga tu configuración existente como valores por defe
 - Claude Code instalado (que exista `~/.claude/`)
 - Node.js ≥ 18 (solo para instalar con `npx` — no se necesita en tiempo de ejecución)
 
+## Seguridad y Privacidad
+
+Tus datos no los tocamos. Tranquilo:
+
+- El **segmento de crypto** hace peticiones a la API pública de Binance (`api.binance.com`) — sin autenticación, sin datos personales enviados
+- El **segmento de usage** lee un token OAuth del llavero de macOS (`Claude Code-credentials`) para consultar la API de uso de Anthropic
+- El **npm postinstall** descarga un binario específico para tu plataforma desde GitHub Releases — nada más se descarga
+- Todos los datos se cachean localmente en archivos `/tmp/claude-statusline-*`
+- Sin telemetría, sin analytics, sin envío de datos a ningún otro lugar
+- Para más detalles, consulta [SECURITY.md](SECURITY.md)
+
+## Desinstalar
+
+```bash
+# Eliminar configuración y binario
+rm -rf ~/.claude/statusline/
+
+# Eliminar la línea de estado de la configuración de Claude Code
+# Edita ~/.claude/settings.json y borra la clave "statusLine"
+
+# Eliminar caché
+rm -f /tmp/claude-statusline-*
+
+# Desinstalar del gestor de paquetes
+npm uninstall -g claude-statusline-config
+# o: brew uninstall claude-statusline-config
+# o: cargo uninstall claude-statusline-config
+```
+
+## Solución de problemas
+
+| Problema | Solución |
+|----------|----------|
+| "Binary not found" | Ejecuta `npx claude-statusline-config` de nuevo para volver a descargar |
+| Error "Is a directory" | Verifica que `~/.claude/statusline/bin/claude-statusline-config` sea un archivo, no un directorio |
+| Crypto no se muestra | Elimina el directorio `/tmp/claude-statusline-crypto-lock` si existe (bloqueo obsoleto) |
+| Los cambios no se ven | Reinicia Claude Code después de guardar la configuración |
+
 ## Contribuir
 
 ¿Encontraste un bug? ¿Quieres una feature? [Abre un issue](https://github.com/LokiQ0713/claude-statusline-config/issues). Los PRs son bienvenidos.
