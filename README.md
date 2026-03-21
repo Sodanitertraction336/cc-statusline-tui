@@ -1,72 +1,87 @@
 # claude-statusline-config
 
-> Spice up your Claude Code statusline.
+> Your Claude Code statusline is boring. Let's fix that.
 
-[中文文档](README.zh.md)
+[中文](README.zh.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Português](README.pt.md) | [Русский](README.ru.md)
 
 ![statusline preview](preview.png)
 
-## Quick Start
+One command. Seven languages. Zero regrets.
+
+## Install
+
+Pick your poison:
 
 ```bash
+# npm — the classic
 npx claude-statusline-config
+
+# Homebrew — for the refined palate
+brew tap LokiQ0713/claude-statusline-config && brew install claude-statusline-config
+
+# Cargo — for the Rustaceans
+cargo install claude-statusline-config
 ```
 
-## Two Modes
+## What Happens
 
-**First time?** Pick "Use defaults", press Enter twice.
-
-**Want to customize?** The wizard walks you through step by step:
+A TUI wizard pops up. You pick stuff. It looks cool. That's it.
 
 ```
-1/4 Segments      → Pick which segments to show
-2/4 Configure     → Style, sub-components, parameters (live preview)
-3/4 Reorder       → Arrange display order
-4/4 Confirm       → Save and apply
+1/4 Segments      → What to show
+2/4 Configure     → How it looks (live preview, instant feedback)
+3/4 Reorder       → Where things go
+4/4 Confirm       → Ship it
 ```
 
-The preview bar stays visible and updates in real-time as you make changes.
+Too lazy to customize? Pick "Use defaults" and press Enter twice. We don't judge.
 
 ## Segments
 
-| Segment | Example | Description | Config |
-|---------|---------|-------------|--------|
-| Model | `🔥 Opus4.6` | Current model | Icon (🔥🧠🦊🤖), color |
-| Cost | `$0.42` | Session cost | Color |
-| Usage | `██░░ 25% 1h43m` | 5h limit: bar + percentage + reset timer | Sub-components, bar style/char/length, text color, refresh |
-| Path | `~/Desktop/web3` | Current directory | Color, max length |
-| Git | `main* ↑2↓1` | Branch + dirty + remote diff | Sub-components (dirty, remote), color |
-| Context | `▬▬▬▬▬▬░░░░ 60% 600K/1M` | Context window usage: bar + percentage + capacity | Sub-components, bar style/char/length, text color |
-| Crypto | `BTC:$73748` | Live prices | Coins (BTC/ETH/BNB/SOL, max 3), color, refresh |
+| Segment | Looks Like | What It Does | You Can Tweak |
+|---------|-----------|--------------|---------------|
+| Model | `🔥 Opus4.6` | Shows which brain you're burning through | Icon (🔥🦊🐢🐰), color |
+| Cost | `$0.42` | Your wallet's pain level | Color |
+| Usage | `██░░ 25% 1h43m` | 5h rate limit: bar + % + reset countdown | Bar style/char/length, color, refresh |
+| Path | `~/project` | Where you are | Color, max length |
+| Git | `main* ↑2↓1` | Branch + dirty flag + ahead/behind | Components, color |
+| Context | `▓▓▓▓░░░ 60% 600K/1M` | How much context window you've eaten | Bar style/char/length, color |
+| Crypto | `BTC:$73748` | Because why not check prices while coding | Coins (BTC/ETH/BNB/SOL), color, refresh |
 
-## Colors
+## Color Styles
 
-| Style | Description |
-|-------|-------------|
-| Ultrathink (Rainbow) | Each character in a different color, with shimmer animation |
-| Cyan / Green / Blue / Yellow / Magenta / Red / White | Solid colors |
-| Orange / Pink / Purple | Extended solid colors |
-| Ultrathink Gradient | Bar only — smooth rainbow gradient |
-| Traffic light | Bar only — green → yellow → red based on usage |
+| Style | Vibe |
+|-------|------|
+| **Ultrathink Rainbow** | Every character is a different color. Yes, it shimmers. |
+| **Ultrathink Gradient** | Smooth rainbow across the bar. Chef's kiss. |
+| **Traffic Light** | Green (≤30%) → Yellow (≤60%) → Red (>60%). Your context window is a traffic jam. |
+| Cyan / Green / Blue / Yellow | The sensible choices |
+| Magenta / Red / Orange / Pink / Purple / White | The expressive choices |
 
-## Language
+## Languages
 
-Supports English and Chinese. Language is selected on first run and saved to config.
+English, 中文, 日本語, 한국어, Español, Português, Русский.
+
+Selected on first run. Your statusline speaks your language.
 
 ## How It Works
 
-1. Wizard → saves to `~/.claude/statusline/config.json`
-2. Copies binary to `~/.claude/statusline/bin`
-3. Updates `~/.claude/settings.json`
-4. Restart Claude Code to apply
+1. Wizard saves config to `~/.claude/statusline/config.json`
+2. Binary goes to `~/.claude/statusline/bin/`
+3. `~/.claude/settings.json` gets updated automatically
+4. Restart Claude Code. Admire your new statusline. Tell your coworkers.
 
-Only touches config files. Re-running reads your saved config as defaults.
+Re-running the wizard loads your existing config as defaults. Non-destructive. Promise.
 
-## Prerequisites
+## Requirements
 
-- Node.js >= 18 (only needed for `npx` install, not at runtime)
 - Claude Code installed (`~/.claude/` exists)
+- Node.js ≥ 18 (only for `npx` install — not needed at runtime)
 
 ## Contributing
 
-[Open an issue](https://github.com/LokiQ0713/claude-statusline-config/issues) or [submit a PR](https://github.com/LokiQ0713/claude-statusline-config/pulls)
+Found a bug? Want a feature? [Open an issue](https://github.com/LokiQ0713/claude-statusline-config/issues). PRs welcome.
+
+## License
+
+MIT
