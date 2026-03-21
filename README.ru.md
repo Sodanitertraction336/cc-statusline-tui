@@ -1,5 +1,10 @@
 # claude-statusline-config
 
+[![CI](https://github.com/LokiQ0713/claude-statusline-config/actions/workflows/ci.yml/badge.svg)](https://github.com/LokiQ0713/claude-statusline-config/actions/workflows/ci.yml)
+[![Release](https://github.com/LokiQ0713/claude-statusline-config/actions/workflows/release.yml/badge.svg)](https://github.com/LokiQ0713/claude-statusline-config/actions/workflows/release.yml)
+[![npm](https://img.shields.io/npm/v/claude-statusline-config)](https://www.npmjs.com/package/claude-statusline-config)
+[![crates.io](https://img.shields.io/crates/v/claude-statusline-config)](https://crates.io/crates/claude-statusline-config)
+
 > Статусная строка Claude Code скучная. Давайте это исправим.
 
 [English](README.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Português](README.pt.md)
@@ -12,14 +17,22 @@
 
 Выбирай на вкус:
 
+### npm
+
 ```bash
-# npm — классика жанра
 npx claude-statusline-config
+```
 
-# Homebrew — для ценителей
-brew tap LokiQ0713/claude-statusline-config && brew install claude-statusline-config
+### Homebrew
 
-# Cargo — для настоящих Rustacean'ов
+```bash
+brew tap LokiQ0713/claude-statusline-config
+brew install claude-statusline-config
+```
+
+### Cargo
+
+```bash
 cargo install claude-statusline-config
 ```
 

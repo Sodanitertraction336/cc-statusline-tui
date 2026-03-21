@@ -1,5 +1,10 @@
 # claude-statusline-config
 
+[![CI](https://github.com/LokiQ0713/claude-statusline-config/actions/workflows/ci.yml/badge.svg)](https://github.com/LokiQ0713/claude-statusline-config/actions/workflows/ci.yml)
+[![Release](https://github.com/LokiQ0713/claude-statusline-config/actions/workflows/release.yml/badge.svg)](https://github.com/LokiQ0713/claude-statusline-config/actions/workflows/release.yml)
+[![npm](https://img.shields.io/npm/v/claude-statusline-config)](https://www.npmjs.com/package/claude-statusline-config)
+[![crates.io](https://img.shields.io/crates/v/claude-statusline-config)](https://crates.io/crates/claude-statusline-config)
+
 > Claude Code 상태표시줄, 너무 밋밋하지 않나요? 한번 꾸며봅시다.
 
 [English](README.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Português](README.pt.md) | [Русский](README.ru.md)
@@ -12,14 +17,22 @@
 
 취향대로 골라주세요:
 
+### npm
+
 ```bash
-# npm — 정석
 npx claude-statusline-config
+```
 
-# Homebrew — 있어보이는 선택
-brew tap LokiQ0713/claude-statusline-config && brew install claude-statusline-config
+### Homebrew
 
-# Cargo — Rustacean의 품격
+```bash
+brew tap LokiQ0713/claude-statusline-config
+brew install claude-statusline-config
+```
+
+### Cargo
+
+```bash
 cargo install claude-statusline-config
 ```
 

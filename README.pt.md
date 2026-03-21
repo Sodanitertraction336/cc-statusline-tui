@@ -1,5 +1,10 @@
 # claude-statusline-config
 
+[![CI](https://github.com/LokiQ0713/claude-statusline-config/actions/workflows/ci.yml/badge.svg)](https://github.com/LokiQ0713/claude-statusline-config/actions/workflows/ci.yml)
+[![Release](https://github.com/LokiQ0713/claude-statusline-config/actions/workflows/release.yml/badge.svg)](https://github.com/LokiQ0713/claude-statusline-config/actions/workflows/release.yml)
+[![npm](https://img.shields.io/npm/v/claude-statusline-config)](https://www.npmjs.com/package/claude-statusline-config)
+[![crates.io](https://img.shields.io/crates/v/claude-statusline-config)](https://crates.io/crates/claude-statusline-config)
+
 > A barra de status do seu Claude Code tá sem graça. Bora dar um trato nela.
 
 [English](README.md) | [中文](README.zh.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Русский](README.ru.md)
@@ -12,14 +17,22 @@ Um comando. Sete idiomas. Zero arrependimentos.
 
 Escolhe teu método:
 
+### npm
+
 ```bash
-# npm — o clássico
 npx claude-statusline-config
+```
 
-# Homebrew — pra quem tem bom gosto
-brew tap LokiQ0713/claude-statusline-config && brew install claude-statusline-config
+### Homebrew
 
-# Cargo — pros Rustáceos de plantão
+```bash
+brew tap LokiQ0713/claude-statusline-config
+brew install claude-statusline-config
+```
+
+### Cargo
+
+```bash
 cargo install claude-statusline-config
 ```
 
