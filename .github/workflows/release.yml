@@ -70,14 +70,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          cat > /tmp/release-notes.md << 'EOF'
+          ## Install
+
+          - **npm**: `npx claude-statusline-config`
+          - **cargo**: `cargo install claude-statusline-config`
+          - **brew**: `brew tap LokiQ0713/claude-statusline-config && brew install claude-statusline-config`
+          EOF
           gh release create "$GITHUB_REF_NAME" \
             --title "$GITHUB_REF_NAME" \
-            --notes "Release ${GITHUB_REF_NAME#v}
-
-Install:
-- **npm**: \`npx claude-statusline-config\`
-- **cargo**: \`cargo install claude-statusline-config\`
-- **brew**: \`brew tap LokiQ0713/claude-statusline-config && brew install claude-statusline-config\`" \
+            --notes-file /tmp/release-notes.md \
             --latest \
             *.tar.gz
 
