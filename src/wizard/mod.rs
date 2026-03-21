@@ -62,10 +62,19 @@ pub fn run() {
         std::process::exit(1);
     }
 
-    let mut config = crate::config::load_config();
+    // Load existing config (if any) and prepare default config
+    let has_existing = crate::config::config_path().exists();
+    let existing_config = crate::config::load_config();
+    let mut config = Config::default();
 
     // Step 0: Language selection (no back)
-    if config.lang.is_empty() || !SUPPORTED_LANGS.contains(&config.lang.as_str()) {
+    // Use existing config's language if valid, otherwise prompt
+    if !existing_config.lang.is_empty()
+        && SUPPORTED_LANGS.contains(&existing_config.lang.as_str())
+    {
+        config.lang = existing_config.lang.clone();
+        i18n::set_lang(&config.lang);
+    } else {
         let opts = vec![
             select::SelectOption {
                 value: "en".into(),
@@ -112,28 +121,54 @@ pub fn run() {
                 std::process::exit(0);
             }
         }
-    } else {
-        i18n::set_lang(&config.lang);
     }
 
-    // Step 0b: Mode selection (defaults vs custom) — loop to support Back
+    // Step 0b: Mode selection — loop to support Back
+    // Preview switches based on highlighted option:
+    //   defaults/custom → show default config preview
+    //   existing → show existing config preview
     loop {
         show_header(&config, t("step.start"));
-        let mode_opts = vec![
+        let mut mode_opts = vec![
             select::SelectOption {
                 value: "defaults".into(),
                 label: t("mode.defaults").into(),
                 hint: Some(t("mode.defaultsHint").into()),
             },
-            select::SelectOption {
-                value: "custom".into(),
-                label: t("mode.custom").into(),
-                hint: Some(t("mode.customHint").into()),
-            },
         ];
-        match select::select(t("mode.prompt"), &mode_opts, Some("defaults"), &mut |_| {}, None) {
+        if has_existing {
+            mode_opts.push(select::SelectOption {
+                value: "existing".into(),
+                label: t("mode.existing").into(),
+                hint: Some(t("mode.existingHint").into()),
+            });
+        }
+        mode_opts.push(select::SelectOption {
+            value: "custom".into(),
+            label: t("mode.custom").into(),
+            hint: Some(t("mode.customHint").into()),
+        });
+
+        let existing_ref = &existing_config;
+        let default_ref = &config;
+        match select::select(
+            t("mode.prompt"),
+            &mode_opts,
+            Some("defaults"),
+            &mut |v: &str| {
+                if v == "existing" {
+                    preview::update_preview_in_place(existing_ref, PREVIEW_ROW);
+                } else {
+                    preview::update_preview_in_place(default_ref, PREVIEW_ROW);
+                }
+            },
+            None,
+        ) {
             select::SelectResult::Selected(v) if v == "defaults" => {
-                let defaults = Config { lang: config.lang.clone(), ..Config::default() };
+                let defaults = Config {
+                    lang: config.lang.clone(),
+                    ..Config::default()
+                };
                 show_header(&defaults, t("step.confirm"));
                 match confirm::confirm(t("prompt.saveDefaults"), true, None) {
                     confirm::ConfirmResult::Yes => {
@@ -143,10 +178,23 @@ pub fn run() {
                     confirm::ConfirmResult::Cancelled => {
                         std::process::exit(0);
                     }
-                    _ => continue, // Back or No — go back to mode selection
+                    _ => continue,
                 }
             }
-            select::SelectResult::Selected(_) => break, // custom mode — continue to steps
+            select::SelectResult::Selected(v) if v == "existing" => {
+                show_header(&existing_config, t("step.confirm"));
+                match confirm::confirm(t("prompt.saveExisting"), true, None) {
+                    confirm::ConfirmResult::Yes => {
+                        do_save(&existing_config);
+                        return;
+                    }
+                    confirm::ConfirmResult::Cancelled => {
+                        std::process::exit(0);
+                    }
+                    _ => continue,
+                }
+            }
+            select::SelectResult::Selected(_) => break, // custom → wizard with default config
             _ => {
                 std::process::exit(0);
             }

@@ -114,6 +114,9 @@ fn t_en(key: &str) -> &'static str {
         "mode.defaultsHint" => "Save directly, just press Enter",
         "mode.custom" => "Customize",
         "mode.customHint" => "Adjust styles and options step by step",
+        "mode.existing" => "Use existing config",
+        "mode.existingHint" => "Keep your current setup",
+        "prompt.saveExisting" => "Re-apply existing config?",
 
         // Segments
         "seg.model" => "Model",
@@ -209,6 +212,9 @@ fn t_zh(key: &str) -> &'static str {
         "mode.defaultsHint" => "直接保存，按回车即可",
         "mode.custom" => "自定义配置",
         "mode.customHint" => "逐项调整样式和选项",
+        "mode.existing" => "使用已有配置",
+        "mode.existingHint" => "保持当前配置不变",
+        "prompt.saveExisting" => "重新应用已有配置？",
 
         "seg.model" => "模型",
         "seg.cost" => "费用",
@@ -295,6 +301,9 @@ fn t_ja(key: &str) -> &'static str {
         "mode.defaultsHint" => "そのまま保存、Enterを押すだけ",
         "mode.custom" => "カスタマイズ",
         "mode.customHint" => "スタイルとオプションを段階的に調整",
+        "mode.existing" => "既存の設定を使用",
+        "mode.existingHint" => "現在の設定をそのまま維持",
+        "prompt.saveExisting" => "既存の設定を再適用しますか？",
 
         "seg.model" => "モデル",
         "seg.cost" => "コスト",
@@ -381,6 +390,9 @@ fn t_ko(key: &str) -> &'static str {
         "mode.defaultsHint" => "바로 저장, Enter만 누르세요",
         "mode.custom" => "사용자 정의",
         "mode.customHint" => "스타일과 옵션을 단계별로 조정",
+        "mode.existing" => "기존 설정 사용",
+        "mode.existingHint" => "현재 설정 유지",
+        "prompt.saveExisting" => "기존 설정을 다시 적용하시겠습니까?",
 
         "seg.model" => "모델",
         "seg.cost" => "비용",
@@ -467,6 +479,9 @@ fn t_es(key: &str) -> &'static str {
         "mode.defaultsHint" => "Guardar directamente, solo presiona Enter",
         "mode.custom" => "Personalizar",
         "mode.customHint" => "Ajustar estilos y opciones paso a paso",
+        "mode.existing" => "Usar configuración existente",
+        "mode.existingHint" => "Mantener tu configuración actual",
+        "prompt.saveExisting" => "¿Reaplicar la configuración existente?",
 
         "seg.model" => "Modelo",
         "seg.cost" => "Costo",
@@ -553,6 +568,9 @@ fn t_pt(key: &str) -> &'static str {
         "mode.defaultsHint" => "Salvar diretamente, apenas pressione Enter",
         "mode.custom" => "Personalizar",
         "mode.customHint" => "Ajustar estilos e opções passo a passo",
+        "mode.existing" => "Usar configuração existente",
+        "mode.existingHint" => "Manter sua configuração atual",
+        "prompt.saveExisting" => "Reaplicar a configuração existente?",
 
         "seg.model" => "Modelo",
         "seg.cost" => "Custo",
@@ -639,6 +657,9 @@ fn t_ru(key: &str) -> &'static str {
         "mode.defaultsHint" => "Сохранить сразу, просто нажмите Enter",
         "mode.custom" => "Настроить",
         "mode.customHint" => "Настроить стили и параметры пошагово",
+        "mode.existing" => "Использовать существующие настройки",
+        "mode.existingHint" => "Сохранить текущую конфигурацию",
+        "prompt.saveExisting" => "Применить существующие настройки заново?",
 
         "seg.model" => "Модель",
         "seg.cost" => "Стоимость",
