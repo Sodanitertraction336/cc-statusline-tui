@@ -129,7 +129,9 @@ pub fn run() {
     // Step 0b: Mode selection — presets + existing + custom, flat list
     // Preview updates live as user navigates between options
     loop {
-        show_header(&config, t("step.start"));
+        // Show preview with the initially selected preset (Developer)
+        let initial_preview = build_preset(&config.lang, "developer");
+        show_header(&initial_preview, t("step.start"));
 
         // Build flat option list: 5 presets [+ existing] + custom
         let mut mode_opts = vec![
