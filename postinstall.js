@@ -60,6 +60,9 @@ function main() {
       fs.copyFileSync(extractedBin, binPath);
       fs.chmodSync(binPath, 0o755);
 
+      // Write version marker for cli.js update check
+      fs.writeFileSync(path.join(binDir, '.version'), VERSION);
+
       console.log(`[cc-statusline] Installed to ${binPath}`);
 
       // Cleanup
