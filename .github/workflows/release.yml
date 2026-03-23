@@ -77,6 +77,7 @@ jobs:
           - **cargo**: `cargo install cc-statusline-tui`
           - **brew**: `brew tap LokiQ0713/cc-statusline-tui && brew install cc-statusline`
           EOF
+          gh release delete "$GITHUB_REF_NAME" --yes 2>/dev/null || true
           gh release create "$GITHUB_REF_NAME" \
             --title "$GITHUB_REF_NAME" \
             --notes-file /tmp/release-notes.md \

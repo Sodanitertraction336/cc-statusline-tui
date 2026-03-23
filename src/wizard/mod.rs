@@ -70,59 +70,64 @@ pub fn run() {
     let existing_config = crate::config::load_config();
     let mut config = Config::default();
 
-    // Step 0: Language selection (no back)
-    // Use existing config's language if valid, otherwise prompt
-    if !existing_config.lang.is_empty()
+    // Step 0: Language selection (always shown, previous choice as default)
+    let default_lang = if !existing_config.lang.is_empty()
         && SUPPORTED_LANGS.contains(&existing_config.lang.as_str())
     {
-        config.lang = existing_config.lang.clone();
-        i18n::set_lang(&config.lang);
+        existing_config.lang.as_str()
     } else {
-        let opts = vec![
-            select::SelectOption {
-                value: "en".into(),
-                label: "English".into(),
-                hint: None,
-            },
-            select::SelectOption {
-                value: "zh".into(),
-                label: "中文".into(),
-                hint: None,
-            },
-            select::SelectOption {
-                value: "ja".into(),
-                label: "日本語".into(),
-                hint: None,
-            },
-            select::SelectOption {
-                value: "ko".into(),
-                label: "한국어".into(),
-                hint: None,
-            },
-            select::SelectOption {
-                value: "es".into(),
-                label: "Español".into(),
-                hint: None,
-            },
-            select::SelectOption {
-                value: "pt".into(),
-                label: "Português".into(),
-                hint: None,
-            },
-            select::SelectOption {
-                value: "ru".into(),
-                label: "Русский".into(),
-                hint: None,
-            },
-        ];
-        match select::select("Language / 语言", &opts, Some("en"), &mut |_| {}, None) {
-            select::SelectResult::Selected(v) => {
-                config.lang = v.clone();
-                i18n::set_lang(&v);
-            }
-            _ => {
-                std::process::exit(0);
-            }
+        "en"
+    };
+    let lang_opts = vec![
+        select::SelectOption {
+            value: "en".into(),
+            label: "English".into(),
+            hint: None,
+        },
+        select::SelectOption {
+            value: "zh".into(),
+            label: "中文".into(),
+            hint: None,
+        },
+        select::SelectOption {
+            value: "ja".into(),
+            label: "日本語".into(),
+            hint: None,
+        },
+        select::SelectOption {
+            value: "ko".into(),
+            label: "한국어".into(),
+            hint: None,
+        },
+        select::SelectOption {
+            value: "es".into(),
+            label: "Español".into(),
+            hint: None,
+        },
+        select::SelectOption {
+            value: "pt".into(),
+            label: "Português".into(),
+            hint: None,
+        },
+        select::SelectOption {
+            value: "ru".into(),
+            label: "Русский".into(),
+            hint: None,
+        },
+    ];
+    match select::select(
+        "Language / 语言",
+        &lang_opts,
+        Some(default_lang),
+        &mut |_| {},
+        None,
+    ) {
+        select::SelectResult::Selected(v) => {
+            config.lang = v.clone();
+            i18n::set_lang(&v);
+        }
+        _ => {
+            std::process::exit(0);
         }
     }
 
