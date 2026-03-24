@@ -123,9 +123,53 @@ gh release list --repo LokiQ0713/cc-statusline-tui
 
 ## CI/CD
 
-- `.github/workflows/ci.yml` — push/PR to main, Rust build + test + clippy
-- `.github/workflows/release.yml` — `v*` tag trigger, auto-publish to npm + crates.io + GitHub Release
-- Required secrets: `NPM_TOKEN` (npm Automation token), `CARGO_REGISTRY_TOKEN` (crates.io API token) — add in GitHub repo Settings → Secrets → Actions
+### ci.yml — 质量门禁
+
+- 触发: push/PR to main
+- Runner: ubuntu-latest
+- 步骤: `cargo check` → `cargo test` → `cargo clippy -- -D warnings`
+
+### release.yml — 三渠道并行发布
+
+- 触发: push tag `v*`
+
+**Job 1: `build`（4 并行矩阵）**
+
+| Rust target | Runner | npm 包 |
+|-------------|--------|--------|
+| aarch64-apple-darwin | macos-latest | darwin-arm64 |
+| x86_64-apple-darwin | macos-latest | darwin-x64 |
+| x86_64-unknown-linux-musl | ubuntu-latest | linux-x64 |
+| aarch64-unknown-linux-musl | ubuntu-latest | linux-arm64 |
+
+- Linux ARM 交叉编译需 `gcc-aarch64-linux-gnu` + `.cargo/config.toml` linker 配置
+- 产出: `binary-*` artifact (tar.gz) + `npm-*` artifact (平台包目录)
+- npm 包版本从 tag 自动提取 (`${GITHUB_REF_NAME#v}`)
+
+**Job 2: `release`** — 下载 binary artifacts → `gh release create` 附带 4 个 tar.gz
+
+**Job 3: `publish-npm`** — 下载 npm artifacts → `chmod +x npm/*/bin/*` → 先发 4 个平台包 → 再发主包
+
+**Job 4: `publish-crate`** — `cargo publish`
+
+### Required Secrets
+
+| Secret | 用途 |
+|--------|------|
+| `NPM_TOKEN` | npm 发布（4 平台包 + 1 主包） |
+| `CARGO_REGISTRY_TOKEN` | crates.io 发布 |
+| `GITHUB_TOKEN` (自动) | GitHub Release |
+
+### npm 分发架构（Biome 模式）
+
+平台包声明 `"bin"` 字段 → npm 安装时自动 chmod +x，无需 postinstall hack。
+cli.js 有 `fs.chmodSync` 自愈兜底 + EACCES 错误诊断。
+
+### 已知坑
+
+- `upload-artifact`/`download-artifact` 会丢失文件权限 → publish-npm 步骤有显式 `chmod +x`
+- `npm version` 只改 package.json，需手动同步 Cargo.toml 版本
+- Homebrew tap 需手动更新 SHA256（无自动化）
 
 ## Error Handling Convention
 
