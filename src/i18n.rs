@@ -105,8 +105,9 @@ fn t_en(key: &str) -> &'static str {
         // Steps
         "step.start" => "Start",
         "step.segments" => "1/4 Segments",
-        "step.reorder" => "3/4 Reorder",
-        "step.confirm" => "4/4 Confirm",
+        "step.modules" => "1/3 Modules",
+        "step.reorder" => "2/3 Reorder",
+        "step.confirm" => "3/3 Confirm",
 
         // Mode selection
         "mode.prompt" => "Config mode",
@@ -136,6 +137,7 @@ fn t_en(key: &str) -> &'static str {
         "seg.model" => "Model",
         "seg.cost" => "Cost",
         "seg.usage" => "5h Limit",
+        "seg.usage7d" => "7d Limit",
         "seg.path" => "Path",
         "seg.git" => "Git",
         "seg.context" => "Context",
@@ -151,6 +153,9 @@ fn t_en(key: &str) -> &'static str {
         "part.branch" => "branch",
 
         // Prompts
+        "prompt.selectModule" => "Select a module to configure",
+        "prompt.selectRow" => "Which row?",
+        "prompt.reorder" => "Reorder?",
         "prompt.selectSegments" => "Select segments to enable",
         "prompt.showParts" => "Show which parts",
         "prompt.barStyle" => "Bar style",
@@ -191,7 +196,17 @@ fn t_en(key: &str) -> &'static str {
         "unit.chars" => "chars",
         "unit.seconds" => "s",
 
+        // Actions
+        "action.done" => "\u{2705} Done",
+
+        // Rows
+        "row.label" => "Row",
+        "row.1" => "Row 1",
+        "row.2" => "Row 2",
+        "row.3" => "Row 3",
+
         // Messages
+        "msg.needOneModule" => "Configure at least one module",
         "msg.preview" => "Preview:",
         "msg.cancelled" => "Cancelled, config not saved",
         "msg.cancelledShort" => "Cancelled",
@@ -218,8 +233,9 @@ fn t_zh(key: &str) -> &'static str {
 
         "step.start" => "开始",
         "step.segments" => "1/4 选择段落",
-        "step.reorder" => "3/4 排列顺序",
-        "step.confirm" => "4/4 确认",
+        "step.modules" => "1/3 配置模块",
+        "step.reorder" => "2/3 排列顺序",
+        "step.confirm" => "3/3 确认",
 
         "mode.prompt" => "配置模式",
         "mode.presets" => "推荐预设",
@@ -246,6 +262,7 @@ fn t_zh(key: &str) -> &'static str {
         "seg.model" => "模型",
         "seg.cost" => "费用",
         "seg.usage" => "5h限额",
+        "seg.usage7d" => "7d限额",
         "seg.path" => "目录",
         "seg.git" => "Git状态",
         "seg.context" => "上下文",
@@ -259,6 +276,9 @@ fn t_zh(key: &str) -> &'static str {
         "part.remote" => "远程差异",
         "part.branch" => "分支",
 
+        "prompt.selectModule" => "选择要配置的模块",
+        "prompt.selectRow" => "放在第几行？",
+        "prompt.reorder" => "重新排序？",
         "prompt.selectSegments" => "选择要启用的段落",
         "prompt.showParts" => "显示哪些部分",
         "prompt.barStyle" => "进度条样式",
@@ -295,6 +315,14 @@ fn t_zh(key: &str) -> &'static str {
         "unit.chars" => "字符",
         "unit.seconds" => "秒",
 
+        "action.done" => "\u{2705} 完成配置",
+
+        "row.label" => "行",
+        "row.1" => "第 1 行",
+        "row.2" => "第 2 行",
+        "row.3" => "第 3 行",
+
+        "msg.needOneModule" => "至少需要配置一个模块",
         "msg.preview" => "预览:",
         "msg.cancelled" => "已取消，配置未保存",
         "msg.cancelledShort" => "已取消",
@@ -320,8 +348,9 @@ fn t_ja(key: &str) -> &'static str {
 
         "step.start" => "開始",
         "step.segments" => "1/4 セグメント選択",
-        "step.reorder" => "3/4 並べ替え",
-        "step.confirm" => "4/4 確認",
+        "step.modules" => "1/3 モジュール",
+        "step.reorder" => "2/3 並べ替え",
+        "step.confirm" => "3/3 確認",
 
         "mode.prompt" => "設定モード",
         "mode.presets" => "おすすめプリセット",
@@ -348,6 +377,7 @@ fn t_ja(key: &str) -> &'static str {
         "seg.model" => "モデル",
         "seg.cost" => "コスト",
         "seg.usage" => "5h制限",
+        "seg.usage7d" => "7d制限",
         "seg.path" => "パス",
         "seg.git" => "Git",
         "seg.context" => "コンテキスト",
@@ -361,6 +391,9 @@ fn t_ja(key: &str) -> &'static str {
         "part.remote" => "リモート差分",
         "part.branch" => "ブランチ",
 
+        "prompt.selectModule" => "設定するモジュールを選択",
+        "prompt.selectRow" => "何行目？",
+        "prompt.reorder" => "並べ替えますか？",
         "prompt.selectSegments" => "有効にするセグメントを選択",
         "prompt.showParts" => "表示する項目",
         "prompt.barStyle" => "バースタイル",
@@ -397,6 +430,14 @@ fn t_ja(key: &str) -> &'static str {
         "unit.chars" => "文字",
         "unit.seconds" => "秒",
 
+        "action.done" => "\u{2705} 完了",
+
+        "row.label" => "行",
+        "row.1" => "1行目",
+        "row.2" => "2行目",
+        "row.3" => "3行目",
+
+        "msg.needOneModule" => "少なくとも1つのモジュールを設定してください",
         "msg.preview" => "プレビュー:",
         "msg.cancelled" => "キャンセルしました。設定は保存されていません",
         "msg.cancelledShort" => "キャンセル",
@@ -422,8 +463,9 @@ fn t_ko(key: &str) -> &'static str {
 
         "step.start" => "시작",
         "step.segments" => "1/4 세그먼트 선택",
-        "step.reorder" => "3/4 순서 변경",
-        "step.confirm" => "4/4 확인",
+        "step.modules" => "1/3 모듈",
+        "step.reorder" => "2/3 순서 변경",
+        "step.confirm" => "3/3 확인",
 
         "mode.prompt" => "설정 모드",
         "mode.presets" => "추천 프리셋",
@@ -450,6 +492,7 @@ fn t_ko(key: &str) -> &'static str {
         "seg.model" => "모델",
         "seg.cost" => "비용",
         "seg.usage" => "5h 한도",
+        "seg.usage7d" => "7d 한도",
         "seg.path" => "경로",
         "seg.git" => "Git",
         "seg.context" => "컨텍스트",
@@ -463,6 +506,9 @@ fn t_ko(key: &str) -> &'static str {
         "part.remote" => "원격 차이",
         "part.branch" => "브랜치",
 
+        "prompt.selectModule" => "설정할 모듈 선택",
+        "prompt.selectRow" => "몇 번째 줄?",
+        "prompt.reorder" => "순서 변경?",
         "prompt.selectSegments" => "활성화할 세그먼트 선택",
         "prompt.showParts" => "표시할 항목",
         "prompt.barStyle" => "바 스타일",
@@ -499,6 +545,14 @@ fn t_ko(key: &str) -> &'static str {
         "unit.chars" => "자",
         "unit.seconds" => "초",
 
+        "action.done" => "\u{2705} 완료",
+
+        "row.label" => "줄",
+        "row.1" => "1번째 줄",
+        "row.2" => "2번째 줄",
+        "row.3" => "3번째 줄",
+
+        "msg.needOneModule" => "최소 하나의 모듈을 설정하세요",
         "msg.preview" => "미리보기:",
         "msg.cancelled" => "취소되었습니다. 설정이 저장되지 않았습니다",
         "msg.cancelledShort" => "취소됨",
@@ -524,8 +578,9 @@ fn t_es(key: &str) -> &'static str {
 
         "step.start" => "Inicio",
         "step.segments" => "1/4 Segmentos",
-        "step.reorder" => "3/4 Reordenar",
-        "step.confirm" => "4/4 Confirmar",
+        "step.modules" => "1/3 Módulos",
+        "step.reorder" => "2/3 Reordenar",
+        "step.confirm" => "3/3 Confirmar",
 
         "mode.prompt" => "Modo de configuración",
         "mode.presets" => "Presets recomendados",
@@ -552,6 +607,7 @@ fn t_es(key: &str) -> &'static str {
         "seg.model" => "Modelo",
         "seg.cost" => "Costo",
         "seg.usage" => "Límite 5h",
+        "seg.usage7d" => "Límite 7d",
         "seg.path" => "Ruta",
         "seg.git" => "Git",
         "seg.context" => "Contexto",
@@ -565,6 +621,9 @@ fn t_es(key: &str) -> &'static str {
         "part.remote" => "Diferencia remota",
         "part.branch" => "rama",
 
+        "prompt.selectModule" => "Seleccionar módulo a configurar",
+        "prompt.selectRow" => "¿En qué fila?",
+        "prompt.reorder" => "¿Reordenar?",
         "prompt.selectSegments" => "Seleccionar segmentos a habilitar",
         "prompt.showParts" => "Mostrar qué partes",
         "prompt.barStyle" => "Estilo de barra",
@@ -601,6 +660,14 @@ fn t_es(key: &str) -> &'static str {
         "unit.chars" => "car.",
         "unit.seconds" => "s",
 
+        "action.done" => "\u{2705} Listo",
+
+        "row.label" => "Fila",
+        "row.1" => "Fila 1",
+        "row.2" => "Fila 2",
+        "row.3" => "Fila 3",
+
+        "msg.needOneModule" => "Configure al menos un módulo",
         "msg.preview" => "Vista previa:",
         "msg.cancelled" => "Cancelado, configuración no guardada",
         "msg.cancelledShort" => "Cancelado",
@@ -626,8 +693,9 @@ fn t_pt(key: &str) -> &'static str {
 
         "step.start" => "Início",
         "step.segments" => "1/4 Segmentos",
-        "step.reorder" => "3/4 Reordenar",
-        "step.confirm" => "4/4 Confirmar",
+        "step.modules" => "1/3 Módulos",
+        "step.reorder" => "2/3 Reordenar",
+        "step.confirm" => "3/3 Confirmar",
 
         "mode.prompt" => "Modo de configuração",
         "mode.presets" => "Presets recomendados",
@@ -654,6 +722,7 @@ fn t_pt(key: &str) -> &'static str {
         "seg.model" => "Modelo",
         "seg.cost" => "Custo",
         "seg.usage" => "Limite 5h",
+        "seg.usage7d" => "Limite 7d",
         "seg.path" => "Caminho",
         "seg.git" => "Git",
         "seg.context" => "Contexto",
@@ -667,6 +736,9 @@ fn t_pt(key: &str) -> &'static str {
         "part.remote" => "Diferença remota",
         "part.branch" => "branch",
 
+        "prompt.selectModule" => "Selecione um módulo para configurar",
+        "prompt.selectRow" => "Qual linha?",
+        "prompt.reorder" => "Reordenar?",
         "prompt.selectSegments" => "Selecionar segmentos para ativar",
         "prompt.showParts" => "Mostrar quais partes",
         "prompt.barStyle" => "Estilo da barra",
@@ -703,6 +775,14 @@ fn t_pt(key: &str) -> &'static str {
         "unit.chars" => "car.",
         "unit.seconds" => "s",
 
+        "action.done" => "\u{2705} Concluído",
+
+        "row.label" => "Linha",
+        "row.1" => "Linha 1",
+        "row.2" => "Linha 2",
+        "row.3" => "Linha 3",
+
+        "msg.needOneModule" => "Configure pelo menos um módulo",
         "msg.preview" => "Prévia:",
         "msg.cancelled" => "Cancelado, configuração não salva",
         "msg.cancelledShort" => "Cancelado",
@@ -728,8 +808,9 @@ fn t_ru(key: &str) -> &'static str {
 
         "step.start" => "Начало",
         "step.segments" => "1/4 Сегменты",
-        "step.reorder" => "3/4 Порядок",
-        "step.confirm" => "4/4 Подтверждение",
+        "step.modules" => "1/3 Модули",
+        "step.reorder" => "2/3 Порядок",
+        "step.confirm" => "3/3 Подтверждение",
 
         "mode.prompt" => "Режим настройки",
         "mode.presets" => "Рекомендуемые пресеты",
@@ -756,6 +837,7 @@ fn t_ru(key: &str) -> &'static str {
         "seg.model" => "Модель",
         "seg.cost" => "Стоимость",
         "seg.usage" => "Лимит 5ч",
+        "seg.usage7d" => "Лимит 7д",
         "seg.path" => "Путь",
         "seg.git" => "Git",
         "seg.context" => "Контекст",
@@ -769,6 +851,9 @@ fn t_ru(key: &str) -> &'static str {
         "part.remote" => "Разница с удалённым",
         "part.branch" => "ветка",
 
+        "prompt.selectModule" => "Выберите модуль для настройки",
+        "prompt.selectRow" => "В какую строку?",
+        "prompt.reorder" => "Изменить порядок?",
         "prompt.selectSegments" => "Выберите сегменты для включения",
         "prompt.showParts" => "Какие части показывать",
         "prompt.barStyle" => "Стиль бара",
@@ -805,6 +890,14 @@ fn t_ru(key: &str) -> &'static str {
         "unit.chars" => "симв.",
         "unit.seconds" => "с",
 
+        "action.done" => "\u{2705} Готово",
+
+        "row.label" => "Строка",
+        "row.1" => "Строка 1",
+        "row.2" => "Строка 2",
+        "row.3" => "Строка 3",
+
+        "msg.needOneModule" => "Настройте хотя бы один модуль",
         "msg.preview" => "Предпросмотр:",
         "msg.cancelled" => "Отменено, настройки не сохранены",
         "msg.cancelledShort" => "Отменено",
@@ -826,8 +919,8 @@ fn t_ru(key: &str) -> &'static str {
 
 fn tf_en(key: &str) -> Option<&'static str> {
     match key {
-        "step.configSegment" => Some("2/4 Configure ({0}/{1})"),
-        "step.reorderN" => Some("3/4 Reorder ({0}/{1})"),
+        "step.configSegment" => Some("2/3 Configure ({0}/{1})"),
+        "step.reorderN" => Some("2/3 Reorder ({0}/{1})"),
         "msg.missingDeps" => Some("Missing dependencies: {0}"),
         "msg.installDeps" => Some("Please install: brew install {0}"),
         "prompt.currentOrder" => Some("Current order: {0}, adjust?"),
@@ -848,8 +941,8 @@ fn tf_en(key: &str) -> Option<&'static str> {
 
 fn tf_zh(key: &str) -> Option<&'static str> {
     match key {
-        "step.configSegment" => Some("2/4 配置段落 ({0}/{1})"),
-        "step.reorderN" => Some("3/4 排列顺序 ({0}/{1})"),
+        "step.configSegment" => Some("2/3 配置段落 ({0}/{1})"),
+        "step.reorderN" => Some("2/3 排列顺序 ({0}/{1})"),
         "msg.missingDeps" => Some("缺少必要依赖: {0}"),
         "msg.installDeps" => Some("请先安装: brew install {0}"),
         "prompt.currentOrder" => Some("当前顺序: {0}，要调整吗？"),
@@ -870,8 +963,8 @@ fn tf_zh(key: &str) -> Option<&'static str> {
 
 fn tf_ja(key: &str) -> Option<&'static str> {
     match key {
-        "step.configSegment" => Some("2/4 設定 ({0}/{1})"),
-        "step.reorderN" => Some("3/4 並べ替え ({0}/{1})"),
+        "step.configSegment" => Some("2/3 設定 ({0}/{1})"),
+        "step.reorderN" => Some("2/3 並べ替え ({0}/{1})"),
         "msg.missingDeps" => Some("依存関係が不足: {0}"),
         "msg.installDeps" => Some("インストール: brew install {0}"),
         "prompt.currentOrder" => Some("現在の順序: {0}、変更しますか？"),
@@ -892,8 +985,8 @@ fn tf_ja(key: &str) -> Option<&'static str> {
 
 fn tf_ko(key: &str) -> Option<&'static str> {
     match key {
-        "step.configSegment" => Some("2/4 설정 ({0}/{1})"),
-        "step.reorderN" => Some("3/4 순서 변경 ({0}/{1})"),
+        "step.configSegment" => Some("2/3 설정 ({0}/{1})"),
+        "step.reorderN" => Some("2/3 순서 변경 ({0}/{1})"),
         "msg.missingDeps" => Some("누락된 의존성: {0}"),
         "msg.installDeps" => Some("설치: brew install {0}"),
         "prompt.currentOrder" => Some("현재 순서: {0}, 변경하시겠습니까?"),
@@ -914,8 +1007,8 @@ fn tf_ko(key: &str) -> Option<&'static str> {
 
 fn tf_es(key: &str) -> Option<&'static str> {
     match key {
-        "step.configSegment" => Some("2/4 Configurar ({0}/{1})"),
-        "step.reorderN" => Some("3/4 Reordenar ({0}/{1})"),
+        "step.configSegment" => Some("2/3 Configurar ({0}/{1})"),
+        "step.reorderN" => Some("2/3 Reordenar ({0}/{1})"),
         "msg.missingDeps" => Some("Dependencias faltantes: {0}"),
         "msg.installDeps" => Some("Instalar: brew install {0}"),
         "prompt.currentOrder" => Some("Orden actual: {0}, ¿ajustar?"),
@@ -936,8 +1029,8 @@ fn tf_es(key: &str) -> Option<&'static str> {
 
 fn tf_pt(key: &str) -> Option<&'static str> {
     match key {
-        "step.configSegment" => Some("2/4 Configurar ({0}/{1})"),
-        "step.reorderN" => Some("3/4 Reordenar ({0}/{1})"),
+        "step.configSegment" => Some("2/3 Configurar ({0}/{1})"),
+        "step.reorderN" => Some("2/3 Reordenar ({0}/{1})"),
         "msg.missingDeps" => Some("Dependências ausentes: {0}"),
         "msg.installDeps" => Some("Instalar: brew install {0}"),
         "prompt.currentOrder" => Some("Ordem atual: {0}, ajustar?"),
@@ -958,8 +1051,8 @@ fn tf_pt(key: &str) -> Option<&'static str> {
 
 fn tf_ru(key: &str) -> Option<&'static str> {
     match key {
-        "step.configSegment" => Some("2/4 Настройка ({0}/{1})"),
-        "step.reorderN" => Some("3/4 Порядок ({0}/{1})"),
+        "step.configSegment" => Some("2/3 Настройка ({0}/{1})"),
+        "step.reorderN" => Some("2/3 Порядок ({0}/{1})"),
         "msg.missingDeps" => Some("Отсутствуют зависимости: {0}"),
         "msg.installDeps" => Some("Установить: brew install {0}"),
         "prompt.currentOrder" => Some("Текущий порядок: {0}, изменить?"),
@@ -1036,7 +1129,7 @@ mod tests {
     #[test]
     fn test_tf_en() {
         set_lang("en");
-        assert_eq!(tf("step.configSegment", &["2", "4"]), "2/4 Configure (2/4)");
+        assert_eq!(tf("step.configSegment", &["2", "4"]), "2/3 Configure (2/4)");
         assert_eq!(tf("done.refresh", &["30"]), "Refresh: 30s");
         assert_eq!(
             tf("msg.missingDeps", &["jq perl"]),
@@ -1049,7 +1142,7 @@ mod tests {
         set_lang("zh");
         assert_eq!(
             tf("step.configSegment", &["2", "4"]),
-            "2/4 配置段落 (2/4)"
+            "2/3 配置段落 (2/4)"
         );
         assert_eq!(tf("done.refresh", &["30"]), "刷新=30s");
         set_lang("en");
@@ -1121,7 +1214,7 @@ mod tests {
     #[test]
     fn test_tf_ja() {
         set_lang("ja");
-        assert_eq!(tf("step.configSegment", &["2", "4"]), "2/4 設定 (2/4)");
+        assert_eq!(tf("step.configSegment", &["2", "4"]), "2/3 設定 (2/4)");
         set_lang("en");
     }
 }
