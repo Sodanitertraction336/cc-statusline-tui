@@ -28,38 +28,77 @@ const SAMPLE_PRICES: &[(&str, u64)] = &[
 
 /// Render a preview statusline bar using sample data for the given config.
 ///
-/// Iterates through `config.order`, rendering each enabled segment with
-/// hard-coded sample values so the user can see what the statusline will
-/// look like before committing to the configuration.
+/// Iterates through `config.effective_rows()`, rendering each enabled segment
+/// with hard-coded sample values so the user can see what the statusline will
+/// look like before committing to the configuration. Multiple rows are joined
+/// with newlines.
+#[cfg(test)]
 pub fn render_preview(config: &Config) -> String {
     let now = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
         .unwrap_or_default()
         .as_secs();
 
-    let mut parts: Vec<String> = Vec::new();
+    let rows = config.effective_rows();
+    let row_strings: Vec<String> = rows.iter()
+        .filter_map(|row_keys| {
+            let parts: Vec<String> = row_keys.iter()
+                .filter_map(|key| render_sample_segment(key, config, now))
+                .collect();
+            if parts.is_empty() { None } else { Some(parts.join(" ")) }
+        })
+        .collect();
 
-    for key in &config.order {
-        if let Some(s) = render_sample_segment(key, config, now) {
-            parts.push(s);
-        }
-    }
-
-    parts.join(" ")
+    row_strings.join("\n")
 }
 
-/// Update the preview line in-place at the given terminal row without
-/// moving the main cursor.
+/// Update the preview lines in-place at the given terminal row without
+/// moving the main cursor. Renders up to 3 rows of preview content.
 pub fn update_preview_in_place(config: &Config, preview_row: u16) {
-    let preview = render_preview(config);
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+
     let label = crate::i18n::t("msg.preview");
-    let text = format!("  \x1b[2m{}\x1b[0m {}", label, preview);
-    super::terminal::print_at(preview_row, &text);
+    let rows = config.effective_rows();
+
+    // Render up to 3 preview rows
+    for i in 0..3u16 {
+        let row_idx = i as usize;
+        let row_content = if row_idx < rows.len() {
+            let parts: Vec<String> = rows[row_idx]
+                .iter()
+                .filter_map(|key| render_sample_segment(key, config, now))
+                .collect();
+            if parts.is_empty() {
+                String::new()
+            } else {
+                parts.join(" ")
+            }
+        } else {
+            String::new()
+        };
+
+        let text = if !row_content.is_empty() {
+            if i == 0 {
+                format!("  \x1b[2m{}\x1b[0m {}", label, row_content)
+            } else {
+                // Align with the label width using spaces
+                let padding = " ".repeat(label.len());
+                format!("  \x1b[2m{}\x1b[0m {}", padding, row_content)
+            }
+        } else {
+            String::new() // empty line clears the row
+        };
+
+        super::terminal::print_at(preview_row + i, &text);
+    }
 }
 
 // ── Per-segment sample renderers ─────────────────────────────────────
 
-fn render_sample_segment(key: &str, config: &Config, now: u64) -> Option<String> {
+pub fn render_sample_segment(key: &str, config: &Config, now: u64) -> Option<String> {
     match key {
         "model" => {
             let seg = &config.segments.model;
@@ -87,6 +126,7 @@ fn render_sample_segment(key: &str, config: &Config, now: u64) -> Option<String>
             }
             let ratio = 0.25;
             let mut parts = Vec::new();
+            parts.push(format_colored(&seg.style, "5h:", now));
             if seg.show_bar {
                 parts.push(format_bar(
                     &seg.style,
@@ -102,7 +142,36 @@ fn render_sample_segment(key: &str, config: &Config, now: u64) -> Option<String>
             if seg.show_reset {
                 parts.push(format_colored(&seg.style, "1h43m", now));
             }
-            if parts.is_empty() {
+            if parts.len() <= 1 {
+                None
+            } else {
+                Some(parts.join(" "))
+            }
+        }
+        "usage_7d" => {
+            let seg = &config.segments.usage_7d;
+            if !seg.enabled {
+                return None;
+            }
+            let ratio = 0.15;
+            let mut parts = Vec::new();
+            parts.push(format_colored(&seg.style, "7d:", now));
+            if seg.show_bar {
+                parts.push(format_bar(
+                    &seg.style,
+                    &seg.bar_char,
+                    seg.bar_length as usize,
+                    ratio,
+                    now,
+                ));
+            }
+            if seg.show_percent {
+                parts.push(format_colored(&seg.style, "15%", now));
+            }
+            if seg.show_reset {
+                parts.push(format_colored(&seg.style, "5d22h", now));
+            }
+            if parts.len() <= 1 {
                 None
             } else {
                 Some(parts.join(" "))

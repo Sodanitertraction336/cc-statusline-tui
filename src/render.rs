@@ -266,7 +266,7 @@ pub fn run() {
         }
         if !parts.is_empty() {
             if !first {
-                print!("\n");
+                println!();
             }
             print!("{}", parts.join(" "));
             first = false;

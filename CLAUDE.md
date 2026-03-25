@@ -65,111 +65,29 @@ cargo test              # Run all tests
 cargo clippy -- -D warnings  # Lint check
 ```
 
-## Versioning
+## CI/CD & Release
 
-Semantic versioning: MAJOR.MINOR.PATCH
+- `.github/workflows/ci.yml` — push/PR to main: `cargo check` + `cargo test` + `cargo clippy -- -D warnings`
+- `.github/workflows/release.yml` — `v*` tag: cross-compile 4 targets, publish to npm + crates.io + GitHub Release
+- Secrets (repo Settings → Secrets → Actions): `NPM_TOKEN`, `CARGO_REGISTRY_TOKEN`
 
-- PATCH: bug fixes, copy/style tweaks
-- MINOR: new segment types, new config options
-- MAJOR: config format changes, binary interface changes
-
-## Release Workflow
-
-### Steps
+### Release a new version
 
 ```bash
-# 1. Verify locally
-cargo test && cargo clippy -- -D warnings
-
-# 2. Bump version in Cargo.toml, then create git commit + tag
-npm version patch      # or minor / major
-
-# 3. Push code and tag → triggers GitHub Actions auto-publish
-git push origin main --tags
+cargo test && cargo clippy -- -D warnings   # verify locally first
+npm version patch   # bumps package.json + Cargo.toml, creates commit + v* tag
+git push origin main --tags                  # triggers release.yml
 ```
 
-### How it works
+Version files to keep in sync: `Cargo.toml`, `package.json`, `npm/*/package.json` (platform versions updated by CI).
 
-1. `npm version` bumps `package.json`, creates a commit and `v*` tag
-2. `git push --tags` pushes the tag to GitHub
-3. GitHub Actions `release.yml` triggers on `v*` tags
-4. Workflow runs `npm publish` using `NPM_TOKEN` secret
-5. Workflow creates a GitHub Release via `gh release create`
+### Common release failures
 
-### Verify publish succeeded
-
-```bash
-# Check GitHub Actions status
-gh run list --repo LokiQ0713/cc-statusline-tui --workflow=release.yml --limit 3
-
-# Check npm registry
-npm view cc-statusline-tui version
-
-# Check crates.io
-cargo search cc-statusline-tui
-
-# Check GitHub Release was created
-gh release list --repo LokiQ0713/cc-statusline-tui
-```
-
-### Troubleshooting publish failures
-
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `ENEEDAUTH` | `NPM_TOKEN` secret missing or invalid | Add/update token in GitHub repo Settings → Secrets → Actions |
-| `E403 previously published` | Version already exists on npm | Bump version again with `npm version patch` |
-| GitHub Release not created | `contents: write` permission missing | Check `release.yml` has `permissions: contents: write` |
-| crates.io publish failed | `CARGO_REGISTRY_TOKEN` missing or invalid | Add/update token in GitHub repo Settings → Secrets → Actions |
-
-## CI/CD
-
-### ci.yml — 质量门禁
-
-- 触发: push/PR to main
-- Runner: ubuntu-latest
-- 步骤: `cargo check` → `cargo test` → `cargo clippy -- -D warnings`
-
-### release.yml — 三渠道并行发布
-
-- 触发: push tag `v*`
-
-**Job 1: `build`（4 并行矩阵）**
-
-| Rust target | Runner | npm 包 |
-|-------------|--------|--------|
-| aarch64-apple-darwin | macos-latest | darwin-arm64 |
-| x86_64-apple-darwin | macos-latest | darwin-x64 |
-| x86_64-unknown-linux-musl | ubuntu-latest | linux-x64 |
-| aarch64-unknown-linux-musl | ubuntu-latest | linux-arm64 |
-
-- Linux ARM 交叉编译需 `gcc-aarch64-linux-gnu` + `.cargo/config.toml` linker 配置
-- 产出: `binary-*` artifact (tar.gz) + `npm-*` artifact (平台包目录)
-- npm 包版本从 tag 自动提取 (`${GITHUB_REF_NAME#v}`)
-
-**Job 2: `release`** — 下载 binary artifacts → `gh release create` 附带 4 个 tar.gz
-
-**Job 3: `publish-npm`** — 下载 npm artifacts → `chmod +x npm/*/bin/*` → 先发 4 个平台包 → 再发主包
-
-**Job 4: `publish-crate`** — `cargo publish`
-
-### Required Secrets
-
-| Secret | 用途 |
-|--------|------|
-| `NPM_TOKEN` | npm 发布（4 平台包 + 1 主包） |
-| `CARGO_REGISTRY_TOKEN` | crates.io 发布 |
-| `GITHUB_TOKEN` (自动) | GitHub Release |
-
-### npm 分发架构（Biome 模式）
-
-平台包声明 `"bin"` 字段 → npm 安装时自动 chmod +x，无需 postinstall hack。
-cli.js 有 `fs.chmodSync` 自愈兜底 + EACCES 错误诊断。
-
-### 已知坑
-
-- `upload-artifact`/`download-artifact` 会丢失文件权限 → publish-npm 步骤有显式 `chmod +x`
-- `npm version` 只改 package.json，需手动同步 Cargo.toml 版本
-- Homebrew tap 需手动更新 SHA256（无自动化）
+- `ENEEDAUTH` / `E403` → check `NPM_TOKEN` or bump version
+- crates.io failed → check `CARGO_REGISTRY_TOKEN`
+- GitHub Release missing → ensure `permissions: contents: write` in release.yml
+- `upload-artifact`/`download-artifact` strips file permissions → publish-npm has explicit `chmod +x`
+- `npm version` only changes package.json → manually sync Cargo.toml
 
 ## Error Handling Convention
 
